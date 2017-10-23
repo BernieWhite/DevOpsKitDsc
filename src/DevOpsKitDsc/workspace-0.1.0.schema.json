@@ -1,0 +1,143 @@
+{
+    "title": "DOK DSC workspace settings",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "oneOf": [
+        {
+            "$ref": "#/definitions/settings-v0.1.0"
+        }
+    ],
+    "definitions": {
+        "module": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the PowerShell module."
+                },
+                "version": {
+                    "type": "string",
+                    "description": "A specific version of the PowerShell module."
+                },
+                "repository": {
+                    "type": "string",
+                    "description": "The repository to download the module from."
+                }
+            },
+            "required": [ "name", "version" ]
+        },
+        "settings-v0.1.0": {
+            "properties": {
+                "version": {
+                    "type": "string",
+                    "description": "The version of the workspace schema.",
+                    "enum": [
+                        "0.1.0"
+                    ],
+                    "default": "0.1.0"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A description for the workspace."
+                },
+                "modules": {
+                    "type": "array",
+                    "description": "A list of modules to manage in the workspace.",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/module"
+                            }
+                        ]
+                    }
+                },
+                "collections": {
+                    "type": "array",
+                    "description": "A list of collections defined in the workspace.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the collection."
+                            },
+                            "path": {
+                                "type": "string",
+                                "description": "The path to the configuration script."
+                            },
+                            "configurationName": {
+                                "type": "string",
+                                "description": "The name of the desired state configuration block."
+                            },
+                            "options": {
+                                "type": "object",
+                                "description": "Options for the collection.",
+                                "properties": {
+                                    "target": {
+                                        "type": "integer",
+                                        "description": "The target for the configuration. 0 = File system, 1 = Azure Automation Service",
+                                        "enum": [ 0, 1 ]
+                                    },
+                                    "replaceNodeData": {
+                                        "type": "boolean",
+                                        "description": "Determined if key/values defined in the data section replace node data, if include in both. The default is not to override data specified in the .psd1."
+                                    }
+                                }
+                            },
+                            "data": {
+                                "type": "object",
+                                "description": "A list of shared configuration data properties to merge into node data.",
+                                "properties": {
+                                    
+                                }
+                            },
+                            "nodes": {
+                                "type": "array",
+                                "description": "A list of node paths to use.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "docs": {
+                                "type": "object",
+                                "description": "Options for documentation generation relating to this collection.",
+                                "properties": {
+                                    "path": {
+                                        "type": "string",
+                                        "description": "A path to the documentation template."
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "A specific document template name to use."
+                                    }
+                                },
+                                "required": [ "path" ]
+                            }
+                        },
+                        "required": [ "name", "path" ]
+                    }
+                },
+                "options": {
+                    "type": "object",
+                    "description": "Global workspace options.",
+                    "properties": {
+                        "outputPath": {
+                            "type": "string",
+                            "description": "The path to store results of the build process."
+                        },
+                        "nodePath": {
+                            "type": "string",
+                            "description": "The path to look for node definitions."
+                        },
+                        "modulePath": {
+                            "type": "string",
+                            "description": "The path to look for modules."
+                        }
+                    }
+                }
+            },
+            "required":[
+                "version"
+            ]
+        }
+    }
+}

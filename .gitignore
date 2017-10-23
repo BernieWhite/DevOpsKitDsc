@@ -1,0 +1,11 @@
+
+/**/.vs/
+/**/bin/
+/**/obj/
+/build/
+/nodes/
+/config/
+/artifacts/
+/reports/
+/**/*.user
+/docs/help/

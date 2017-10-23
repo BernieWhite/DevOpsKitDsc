@@ -1,0 +1,19 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/**/.dokd/settings.json"
+            ],
+            "url": "./src/DevOpsKitDsc/workspace-0.1.0.schema.json"
+        }
+    ],
+    "files.exclude": {
+        ".vs": true,
+        "artifacts": true,
+        "reports": true
+    },
+    "search.exclude": {
+        "build": true
+    }
+}
