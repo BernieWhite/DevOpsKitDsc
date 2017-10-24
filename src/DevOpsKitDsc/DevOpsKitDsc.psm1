@@ -1338,7 +1338,9 @@ function ReadJsonNodeData {
                 # Process each property
                 $InputObject.PSObject.Properties.GetEnumerator() | ForEach-Object -Process {
 
-                    if ($_.Value -is [Object[]]) {
+                    if ($_.Value -is [Object[]] -and $_.Value[0] -is [String]) {
+                        $result[$_.Name] = $_.Value;
+                    } elseif ($_.Value -is [Object[]]) {
                         $result[$_.Name] = $_.Value | ObjectToHashtable;
                     } elseif ($_.Value -is [PSCustomObject]) {
                         $result[$_.Name] = ObjectToHashtable -InputObject $_.Value;
