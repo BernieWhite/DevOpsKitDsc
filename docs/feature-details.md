@@ -1,6 +1,6 @@
 # Feature details
 
-The following sections decribe the features DOKD adds on top of PowerShell Desired State Configuration (DSC).
+The following sections decribe DOKD features that enhance use of PowerShell Desired State Configuration (DSC).
 
 ## Node configuration data
 
