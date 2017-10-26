@@ -177,7 +177,10 @@ function New-DOKDscCollection {
         [String]$Name,
 
         [Parameter(Position = 1, Mandatory = $False)]
-        [String]$Path
+        [String]$Path,
+
+        [Parameter(Mandatory = $False)]
+        [DevOpsKitDsc.Workspace.CollectionOption]$Options
     )
 
     process {
@@ -215,6 +218,10 @@ function New-DOKDscCollection {
             Name = $Name;
             Path = $relativePath;
         };
+
+        if ($PSBoundParameters.ContainsKey('Options')) {
+            $c.Options = $Options;
+        }
         
         $setting.Collections.Add($c);
 
@@ -405,9 +412,15 @@ function Publish-DOKDscModule {
         [Parameter(Mandatory = $False)]
         [String]$WorkspacePath = $PWD,
 
+        # The name of the collection
+        [Parameter(Mandatory = $False)]
+        [String]$Name,
+
+        # The name of the module
         [Parameter(Mandatory = $False)]
         [String]$ModuleName,
 
+        # The version of the module
         [Parameter(Mandatory = $False)]
         [String]$ModuleVersion
     )
@@ -436,6 +449,8 @@ function Publish-DOKDscModule {
             }
         }
 
+        $collections = GetCollection -Setting $setting -Name $Name -Verbose:$VerbosePreference;
+
         # Process each environment
         foreach ($module in $modules) {
 
@@ -446,7 +461,16 @@ function Publish-DOKDscModule {
                 OutputPath = $outputPath;
             };
 
-            PublishModule @publishParams;
+            foreach ($collection in $collections) {
+
+                if ($collection.Options.Target -eq [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]::AzureAutomationService) {
+                    $publishParams['Target'] = [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]::AzureAutomationService;
+                } else {
+                    $publishParams['Target'] = [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]::FileSystem;
+                }
+
+                PublishModule @publishParams;
+            }
         }
     }
 
@@ -1563,21 +1587,33 @@ function PublishModule {
         [DevOpsKitDsc.Workspace.Module]$Module,
 
         [Parameter(Mandatory = $True)]
-        [String]$OutputPath
+        [String]$OutputPath,
+
+        [Parameter(Mandatory = $False)]
+        [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]$Target = [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]::FileSystem
     )
 
     process {
 
-        # # Read the .psd1 file
-        # Import-LocalizedData -BaseDirectory $baseDirectory -FileName $fileName -BindingVariable nodeConfigData;
+        $publishName = "$($Module.ModuleName)_$($Module.ModuleVersion).zip";
 
-        $publishName = "$OutputPath\$($Module.ModuleName).zip";
-
-        if (!(Test-Path -Path $OutputPath)) {
-            New-Item -Path $OutputPath -ItemType Directory -Force | Out-Null;
+        if ($Target -eq [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]::AzureAutomationService) {
+            $publishName = "$($Module.ModuleName).zip";
         }
 
-        Compress-Archive -Path "$($Module.Path)\*" -DestinationPath $publishName -Verbose -Force;
+        # Get the full path to the package file
+        $publishFilePath = Join-Path -Path $OutputPath -ChildPath $publishName;
+
+        # Get the directory that the package file will be created in
+        $publishPath = Split-Path -Path $publishFilePath -Parent;
+
+        # Create the publish directory
+        if (!(Test-Path -Path $publishPath)) {
+            New-Item -Path $publishPath -ItemType Directory -Force | Out-Null;
+        }
+
+        # Compress the module
+        Compress-Archive -Path "$($Module.Path)\*" -DestinationPath $publishFilePath -Verbose -Force;
     }
 }
 
@@ -2050,6 +2086,26 @@ function GetDefaultConfigurationPath {
     process {
 
         return GetWorkspacePath -WorkspacePath $WorkspacePath -Path "src\Configuration\$ConfigurationName.ps1";
+    }
+}
+
+function GetCollection {
+
+    [CmdletBinding()]
+    [OutputType([DevOpsKitDsc.Workspace.Collection])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Workspace.WorkspaceSetting]$Setting,
+
+        [Parameter(Mandatory = $False)]
+        [String]$Name
+    )
+
+    process {
+
+        $Setting.Collections | Where-Object -FilterScript {
+            (!$PSBoundParameters.ContainsKey('Name') -or $Name -eq $_.Name)
+        };
     }
 }
 
