@@ -4,13 +4,11 @@ The following sections decribe DOKD features that enhance use of PowerShell Desi
 
 ## Node configuration data
 
-### Simple node configuration data
+### Flat configuration data
 
 PowerShell DSC includes a features called _configuration data_. Configuration data allows IT Pros to seperate environmental or node settings from the configuration script, allowing administrator to avoid hard coding configuration settings that may differ between servers.
 
---DOKD gives administrators choice improves this further by 
-
-For example:
+For example, consider the following configurations that might be maintained seperately. Using _configuration data_, a single configuration script can used to manage each server independently without sacreficing code reuse.
 
 | Server name | Environment | Role | Domain name | Web apps |
 | ----------- | ----------- | ---- | ----------- | -------- |
@@ -19,19 +17,49 @@ For example:
 | CDEVW01     | Dev         | Web  | dev.contoso.com  | TravelApp |
 | CTSTW01     | Test        | Web  | test.contoso.com | Intranet, TravelApp |
 
+When using _configuration data_, DSC requires that the configuration of a node be included an `AllNodes` array.
+
 ```powershell
 @{
     AllNodes = @(
         @{
-            NodeName = "CPRDW01"
+            NodeName = 'CTSTW01'
+
+            Environment = 'Test'
+
+            # Add server roles here
+            Role = @(
+                'Web'
+            )
+
+            # Web applications to install when Web role is used
+            WebApps = @(
+                'TravelApp'
+                'Intranet'
+            )
         }
     )
 }
 ```
 
+When only a single node needs to be defined, adding the `AllNodes` array is unnecessary. In these cases, DOKD allows administrators to opt for a simple flat structure.
+
 ```powershell
 @{
-    NodeName = "CPRDW01"
+    NodeName = 'CTSTW01'
+
+    Environment = 'Test'
+
+    # Add server roles here
+    Role = @(
+        'Web'
+    )
+
+    # Web applications to install when Web role is used
+    WebApps = @(
+        'TravelApp'
+        'Intranet'
+    )
 }
 ```
 
@@ -39,7 +67,7 @@ For example:
 
 JavaScript-Object-Notation (JSON) is a data structure format that is widely used by modern web applications.
 
-DOKD automatically detects and converts node configuration data stored in JSON files when building a collection configuration. JSON formatted node data also supports DOKD flot format.
+DOKD automatically detects and converts node configuration data stored in JSON files when building a collection configuration.
 
 ```json
 {
@@ -61,6 +89,8 @@ DOKD automatically detects and converts node configuration data stored in JSON f
 }
 ```
 
+JSON formatted node data also supports DOKD flat configuration data.
+
 ```json
 {
     "NodeName": "Server1",
@@ -75,7 +105,7 @@ DOKD automatically detects and converts node configuration data stored in JSON f
 
 ### Packaging resource modules for local pull server
 
-When PowerShell modules containing DSC resources are deployed to local pull server configurations, each module must be ziped, named and a checksum generated before the pull server can correctly process them.
+When PowerShell modules containing DSC resources are deployed to local pull server configurations, each module must be zipped, named and a checksum generated before the pull server can correctly process them.
 
 DOKD will download and package any dependency modules defined in the workspace.
 
@@ -95,7 +125,7 @@ Add-DOKDscMoulde -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
 
 ### Packaging modules for Azure Automation Service
 
-When PowerShell modules containing DSC resources are deployed to Azure Automation Service, each module must be ziped and named before the pull server can correctly process them.
+When PowerShell modules containing DSC resources are deployed to Azure Automation Service, each module must be zipped and named before the pull server can correctly process them.
 
 DOKD will download and package any dependency modules defined in the workspace.
 

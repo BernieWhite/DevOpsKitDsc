@@ -28,6 +28,7 @@ The following modules are included in this repository.
 ## Features
 
 - [Node configuration data](docs/feature-details.md#Node_configuration_data)
+  - Use flat configuration data structure for a single node
   - Use your choice of PSD1 or JSON files for storing node data.
 - [Packaging](docs/feature-details.md#Packaging)
   - Package configurations and resource modules ready for a local pull server or Azure Automation Service.
