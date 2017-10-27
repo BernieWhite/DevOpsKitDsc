@@ -1,5 +1,12 @@
 version: 0.1.0.{build}
 image: Visual Studio 2017
-build: off
+
+install:
+  - ps: |
+      Install-Module PSDocs.Dsc -RequiredVersion 0.2.0 -Scope CurrentUser -Force | Out-Null
+
+build_script:
+- ps: .\scripts\build.ps1 -Module DevOpsKitDsc
+
 test_script:
 - ps: .\scripts\test.ps1

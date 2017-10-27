@@ -37,6 +37,12 @@
             "type": "shell",
             "command": "New-ExternalHelp -OutputPath .\\build\\docs -Path .\\docs\\commands\\en-US -Force",
             "problemMatcher": []
+        },
+        {
+            "taskName": "scaffold-docs",
+            "type": "shell",
+            "command": "Update-MarkdownHelp -Path .\\docs\\commands\\en-US",
+            "problemMatcher": []
         }
     ]
 }

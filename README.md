@@ -1,6 +1,6 @@
 # DevOps Kit for Dsc
 
-This DevOps Kit for Desired State Configuration (DOKDsc) aims to provide IT Pros with tools and documentation to easily adopt a DevOps model for deploying and managing Desired State Configuration (DSC).
+This DevOps Kit for Desired State Configuration (DOKD) aims to provide IT Pros with tools and documentation to easily adopt a DevOps model for deploying and managing Desired State Configuration (DSC).
 
 DSC already provides the tools for IT Pros to automate the configuration of Windows or Linux to stand-up a fully running workload. Application Lifecycle Management (ALM) tools such as Visual Studio Team Services (VSTS) also provide features such as requirements tracking, version control and release management.
 
@@ -25,7 +25,13 @@ The following modules are included in this repository.
 | ------       | ----------- | -------------- |
 | DevOpsKitDsc | Automate releases of Desired State Configuration configurations | [v0.1.0][psg-dokdsc] |
 
-[psg-dokdsc]: https://www.powershellgallery.com/packages/DevOpsKitDsc
+## Features
+
+- [Node configuration data](docs/feature-details.md#Node_configuration_data)
+  - Use flat configuration data structure for a single node
+  - Use your choice of PSD1 or JSON files for storing node data.
+- [Packaging](docs/feature-details.md#Packaging)
+  - Package configurations and resource modules ready for a local pull server or Azure Automation Service.
 
 ## Getting started
 
@@ -35,14 +41,14 @@ Please see getting started documentation [here][getting-started].
 
 ### Getting the module
 
-- Install from PowerShellGallery.com
+- Install from [PowerShell Gallery][psg-dokdsc]
 
 ```powershell
 # Install the module
 Install-Module -Name 'DevOpsKitDsc';
 ```
 
-- Save for offline use from PowerShellGallery.com
+- Save for offline use from PowerShell Gallery
 
 ```powershell
 # Save the DevOpsKitDsc module, in the .\modules directory
@@ -51,7 +57,7 @@ Save-Module -Name 'DevOpsKitDsc' -Path '.\modules';
 
 ### Getting Visual Studio Code integration
 
-- Install extension (preview) from visualstudio.com
+- Install extension (preview) from [Visual Studio Marketplace][vsm-dokd-vscode]
 
 ```powershell
 # Install the extension
@@ -90,6 +96,14 @@ Invoke-DOKDscBuild;
 - [Publish-DOKDscModule](/docs/commands/en-US/Publish-DOKDscModule.md)
 - [Restore-DOKDscModule](/docs/commands/en-US/Restore-DOKDscModule.md)
 
+## Related projects
+
+| Project name       | Description |
+| ------             | ----------- |
+| [DevOpsKitDsc-vscode](https://github.com/BernieWhite/DevOpsKitDsc-vscode) | A Visual Studio Code extension for DOKD |
+| [DevOpsKitDsc-samples](https://github.com/BernieWhite/DevOpsKitDsc-samples) | A sample DOKD repository |
+| [PSDocs](https://github.com/BernieWhite/PSDocs) | A PowerShell module to generate markdown |
+
 ## Maintainers
 
 - [Bernie White](https://github.com/BernieWhite)
@@ -97,3 +111,6 @@ Invoke-DOKDscBuild;
 ## License
 
 This project is [licensed under the MIT License](LICENSE).
+
+[psg-dokdsc]: https://www.powershellgallery.com/packages/DevOpsKitDsc
+[vsm-dokd-vscode]: https://marketplace.visualstudio.com/items?itemName=bewhite.dokd-vscode-preview

@@ -69,7 +69,7 @@ Describe 'Node module' {
         $nodeDataPath = Join-Path -Path $contextPath -ChildPath 'nodes';
         New-Item -Path $nodeDataPath -Force -ItemType Directory | Out-Null;
 
-        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.psd1') -Value '@{ NodeName = "Node1"; Role = "Test"; }';
+        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.psd1') -Value '@{ NodeName = "Node1"; Role = "Web"; }';
 
         $result = Import-DOKDscNodeConfiguration -InstanceName 'Node1' -WorkspacePath $contextPath -Verbose:$VerbosePreference;
         
@@ -79,6 +79,10 @@ Describe 'Node module' {
         
         It 'Node name is expected' {
             $result.NodeName | Should be 'Node1';
+        }
+
+        It 'Node data is expected' {
+            $result.Role | Should be 'Web';
         }
     }
 
@@ -91,7 +95,7 @@ Describe 'Node module' {
         $nodeDataPath = Join-Path -Path $contextPath -ChildPath 'nodes';
         New-Item -Path $nodeDataPath -Force -ItemType Directory | Out-Null;
 
-        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.psd1') -Value '@{ AllNodes = @( @{ NodeName = "Node1"; Role = "Database"; }, @{ NodeName = "Node2"; Role = "Web"; } ) }';
+        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.psd1') -Value '@{ AllNodes = @( @{ NodeName = "Node1"; Role = @("Database"); }, @{ NodeName = "Node2"; Role = @("Web"); } ) }';
 
         $result = Import-DOKDscNodeConfiguration -InstanceName 'Node1' -WorkspacePath $contextPath -Verbose:$VerbosePreference;
         
@@ -103,8 +107,16 @@ Describe 'Node module' {
             ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node1' }) | Should not be $Null;
         }
 
+        It 'Node role is expected' {
+            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node1' }).Role | Should be 'Database';
+        }
+
         It 'Node name is expected' {
             ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node2' }) | Should not be $Null;
+        }
+
+        It 'Node role is expected' {
+            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node2' }).Role | Should be 'Web';
         }
     }
 
@@ -117,7 +129,14 @@ Describe 'Node module' {
         $nodeDataPath = Join-Path -Path $contextPath -ChildPath 'nodes';
         New-Item -Path $nodeDataPath -Force -ItemType Directory | Out-Null;
 
-        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.json') -Value (@{ NodeName = "Node1"; Role = "Test"; } | ConvertTo-Json -Depth 5);
+        $nodeData = @{
+            NodeName = "Node1";
+            Role = "Web";
+        }
+
+        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.json') -Value (
+            $nodeData | ConvertTo-Json -Depth 5
+        );
 
         $result = Import-DOKDscNodeConfiguration -InstanceName 'Node1' -WorkspacePath $contextPath -Verbose:$VerbosePreference;
         
@@ -125,8 +144,12 @@ Describe 'Node module' {
             $result | Should not be $Null;
         }
         
-        It 'Node name is expected' {
+        It 'Node was imported' {
             $result.NodeName | Should be 'Node1';
+        }
+
+        It 'Node role data was imported' {
+            $result.Role | Should be 'Web';
         }
     }
 
@@ -139,7 +162,22 @@ Describe 'Node module' {
         $nodeDataPath = Join-Path -Path $contextPath -ChildPath 'nodes';
         New-Item -Path $nodeDataPath -Force -ItemType Directory | Out-Null;
 
-        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.json') -Value (@{ AllNodes = @( @{ NodeName = "Node1"; Role = "Database"; }, @{ NodeName = "Node2"; Role = "Web"; } ) } | ConvertTo-Json -Depth 5);
+        $nodeData = @{
+            AllNodes = @(
+                @{
+                    NodeName = "Node1";
+                    Role = @("Database");
+                },
+                @{
+                    NodeName = "Node2";
+                    Role = @("Web");
+                }
+            )
+        }
+
+        Set-Content -Path (Join-Path -Path $nodeDataPath -ChildPath 'node1.json') -Value (
+            $nodeData | ConvertTo-Json -Depth 5
+        );
 
         $result = Import-DOKDscNodeConfiguration -InstanceName 'Node1' -WorkspacePath $contextPath -Verbose:$VerbosePreference;
         
@@ -147,12 +185,20 @@ Describe 'Node module' {
             $result | Should not be $Null;
         }
         
-        It 'Node name is expected' {
-            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node1' }) | Should not be $Null;
+        It 'Node (1) was imported' {
+            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node1' }).NodeName | Should be 'Node1';
         }
 
-        It 'Node name is expected' {
-            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node2' }) | Should not be $Null;
+        It 'Node (1) role was imported' {
+            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node1' }).Role | Should be 'Database';
+        }
+
+        It 'Node (2) was imported' {
+            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node2' }).NodeName | Should be 'Node2';
+        }
+
+        It 'Node (2) role was imported' {
+            ($result.AllNodes | Where-Object -FilterScript { $_.NodeName -eq 'Node2' }).Role | Should be 'Web';
         }
     }
 

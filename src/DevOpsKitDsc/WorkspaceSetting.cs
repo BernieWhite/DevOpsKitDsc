@@ -32,6 +32,21 @@ namespace DevOpsKitDsc.Workspace
             Target = ConfigurationOptionTarget.FileSystem;
             ReplaceNodeData = false;
         }
+
+        public static implicit operator CollectionOption(Hashtable value)
+        {
+            var result = new CollectionOption();
+
+            if (value.ContainsKey("Target")) {
+                result.Target = (ConfigurationOptionTarget)value["Target"];
+            }
+
+            if (value.ContainsKey("ReplaceNodeData")) {
+                result.ReplaceNodeData = (bool)value["ReplaceNodeData"];
+            }
+
+            return result;
+        }
     }
 
     [JsonObject()]
