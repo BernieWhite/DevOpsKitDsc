@@ -1,6 +1,7 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/blob/master/docs/commands/en-US/Add-DOKDscModule.md
 schema: 2.0.0
 ---
 
@@ -16,28 +17,28 @@ Add a module dependency to the workspace.
 
 ```powershell
 Add-DOKDscModule [-WorkspacePath <String>] -ModuleName <String> -ModuleVersion <String> [-Repository <String>]
- [-Type <String>]
+ [-Type <String>] [<CommonParameters>]
 ```
 
 ### Path
 
 ```powershell
-Add-DOKDscModule [-WorkspacePath <String>] -Path <String> [-Type <String>]
+Add-DOKDscModule [-WorkspacePath <String>] -Path <String> [-Type <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-{{Fill in the Description}}
+Add a module dependency to the workspace.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-PS C:\> {{ Add example code here }}
+PS C:\> Add-DOKDscModule -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
 ```
 
-{{ Add example description here }}
+Add version 1.8.0.0 of the SharePointDsc module to the workspace.
 
 ## PARAMETERS
 
@@ -75,7 +76,7 @@ Accept wildcard characters: False
 
 ### -Path
 
-{{Fill Path Description}}
+The path to the module.
 
 ```yaml
 Type: String
@@ -91,7 +92,7 @@ Accept wildcard characters: False
 
 ### -Repository
 
-{{Fill Repository Description}}
+The name of the repository to use when restoring the module.
 
 ```yaml
 Type: String
@@ -107,7 +108,9 @@ Accept wildcard characters: False
 
 ### -Type
 
-{{Fill Type Description}}
+If the module is from this workspace or a repository.
+
+When Workspace type is used no attept will be made to download the module from an external repository.
 
 ```yaml
 Type: String
@@ -138,10 +141,13 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
-
 
 ## OUTPUTS
 
@@ -150,3 +156,9 @@ Accept wildcard characters: False
 ## NOTES
 
 ## RELATED LINKS
+
+[Get-DOKDscModule](Get-DOKDscModule.md)
+
+[Restore-DOKDscModule](Restore-DOKDscModule.md)
+
+[Publish-DOKDscModule](Publish-DOKDscModule.md)
