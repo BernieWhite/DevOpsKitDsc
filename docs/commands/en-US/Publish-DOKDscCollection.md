@@ -1,27 +1,31 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/tree/master/docs/commands/en-US/Publish-DOKDscCollection.md
 schema: 2.0.0
 ---
 
 # Publish-DOKDscCollection
 
 ## SYNOPSIS
-{{Fill in the Synopsis}}
+
+Publish the configuration of a collection.
 
 ## SYNTAX
 
-```
-Publish-DOKDscCollection [[-Name] <String[]>] [[-WorkspacePath] <String>]
+```powershell
+Publish-DOKDscCollection [[-Name] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-{{Fill in the Description}}
+
+Publish the configuration of a collection.
 
 ## EXAMPLES
 
 ### Example 1
-```
+
+```powershell
 PS C:\> {{ Add example code here }}
 ```
 
@@ -30,7 +34,8 @@ PS C:\> {{ Add example code here }}
 ## PARAMETERS
 
 ### -Name
-{{Fill Name Description}}
+
+The name of the collection to publish.
 
 ```yaml
 Type: String[]
@@ -60,17 +65,18 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
-
 
 ## OUTPUTS
 
 ### System.Void
 
-
 ## NOTES
 
 ## RELATED LINKS
-

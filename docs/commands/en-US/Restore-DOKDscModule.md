@@ -1,6 +1,7 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/tree/master/docs/commands/en-US/Restore-DOKDscModule.md
 schema: 2.0.0
 ---
 
@@ -14,6 +15,7 @@ Restore workspace module dependencies.
 
 ```powershell
 Restore-DOKDscModule [[-WorkspacePath] <String>] [[-ModuleName] <String>] [[-ModuleVersion] <String>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -96,10 +98,13 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
-
 
 ## OUTPUTS
 
@@ -108,3 +113,9 @@ Accept wildcard characters: False
 ## NOTES
 
 ## RELATED LINKS
+
+[Add-DOKDscModule](Add-DOKDscModule.md)
+
+[Get-DOKDscModule](Get-DOKDscModule.md)
+
+[Publish-DOKDscModule](Publish-DOKDscModule.md)

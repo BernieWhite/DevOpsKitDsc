@@ -1,6 +1,7 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/tree/master/docs/commands/en-US/Invoke-DOKDscBuild.md
 schema: 2.0.0
 ---
 
@@ -14,7 +15,7 @@ Build collections in a workspace.
 
 ```powershell
 Invoke-DOKDscBuild [[-Name] <String>] [[-InstanceName] <String[]>] [[-WorkspacePath] <String>]
- [[-ConfigurationData] <Object>] [[-Parameters] <IDictionary>]
+ [[-ConfigurationData] <Object>] [[-Parameters] <IDictionary>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -66,7 +67,6 @@ Accept wildcard characters: False
 ```
 
 ### -Name
-
 The name of the collection to build. If a name is not specified all collections will be built.
 
 ```yaml
@@ -82,7 +82,6 @@ Accept wildcard characters: False
 ```
 
 ### -Parameters
-
 {{Fill Parameters Description}}
 
 ```yaml
@@ -98,7 +97,6 @@ Accept wildcard characters: False
 ```
 
 ### -WorkspacePath
-
 The path to an existing workspace. If no value is specified the current working path is used.
 
 ```yaml
@@ -113,10 +111,12 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
-
 
 ## OUTPUTS
 

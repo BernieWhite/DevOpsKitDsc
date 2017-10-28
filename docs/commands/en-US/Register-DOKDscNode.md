@@ -1,27 +1,31 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/tree/master/docs/commands/en-US/Register-DOKDscNode.md
 schema: 2.0.0
 ---
 
 # Register-DOKDscNode
 
 ## SYNOPSIS
-{{Fill in the Synopsis}}
+
+Create a public/private key pair for configuration encryption.
 
 ## SYNTAX
 
-```
-Register-DOKDscNode [[-InstanceName] <String[]>] [[-WorkspacePath] <String>]
+```powershell
+Register-DOKDscNode [[-InstanceName] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-{{Fill in the Description}}
+
+Create a public/private key pair for configuration encryption.
 
 ## EXAMPLES
 
 ### Example 1
-```
+
+```powershell
 PS C:\> {{ Add example code here }}
 ```
 
@@ -30,6 +34,7 @@ PS C:\> {{ Add example code here }}
 ## PARAMETERS
 
 ### -InstanceName
+
 {{Fill InstanceName Description}}
 
 ```yaml
@@ -60,10 +65,13 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
-
 
 ## OUTPUTS
 
