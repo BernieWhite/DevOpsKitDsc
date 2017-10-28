@@ -242,7 +242,6 @@ function Publish-DOKDscCollection {
         [String[]]$Name,
 
         [Parameter(Mandatory = $False)]
-        [Alias('paths')]
         [String]$WorkspacePath = $PWD
     )
 
@@ -257,21 +256,21 @@ function Publish-DOKDscCollection {
         # Get workspace settings
         $setting = Import-DOKDscWorkspaceSetting -WorkspacePath $WorkspacePath -Verbose:$VerbosePreference;
 
-        Write-Verbose -Message "[DOKDsc][$dokOperation] -- Using Collection: $Name";
+        Write-Verbose -Message "[DOKDsc][$dokOperation] -- Using collection: $Name";
 
         # Filter collections by name as required
-        $collections = $setting.Collections | Where-Object -FilterScript {
-            !$PSBoundParameters.ContainsKey('Name') -or
-            ($Name -contains $_.Name)
-        };
+        $collections = GetCollection -Setting $setting -Name $Name -Verbose:$VerbosePreference;
 
         # Process each matching collection
         foreach ($collection in $collections) {
 
-            $outputPath = $setting.Options.OutputPath;
+            Write-Verbose -Message "[DOKDsc][$dokOperation] -- Processing collection: $Name";
+
+            $outputPath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $setting.Options.OutputPath -Verbose:$VerbosePreference;
             
             $publishParams = @{
                 OutputPath = $outputPath;
+                Path = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Path -Verbose:$VerbosePreference;
                 Name = $collection.Name;
             };
 
@@ -1574,7 +1573,13 @@ function PublishConfiguration {
             return;
         }
 
-        Copy-Item -LiteralPath $Path -Destination $OutputPath -Force;
+        $collectionOutput = Join-Path -Path $OutputPath -ChildPath $Name;
+
+        if (!(Test-Path -Path $collectionOutput)) {
+            New-Item -Path $collectionOutput -ItemType Directory -Force | Out-Null;
+        }
+
+        Copy-Item -LiteralPath $Path -Destination $collectionOutput -Force;
 
     }
 }
@@ -2089,6 +2094,7 @@ function GetDefaultConfigurationPath {
     }
 }
 
+# Get collection based on name filter.
 function GetCollection {
 
     [CmdletBinding()]
@@ -2098,13 +2104,13 @@ function GetCollection {
         [DevOpsKitDsc.Workspace.WorkspaceSetting]$Setting,
 
         [Parameter(Mandatory = $False)]
-        [String]$Name
+        [String[]]$Name
     )
 
     process {
 
         $Setting.Collections | Where-Object -FilterScript {
-            (!$PSBoundParameters.ContainsKey('Name') -or $Name -eq $_.Name)
+            (!$PSBoundParameters.ContainsKey('Name') -or $_.Name -in $Name)
         };
     }
 }

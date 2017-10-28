@@ -12,7 +12,8 @@ if ((Test-Path -Path $outputPath)) {
     Remove-Item -Path $outputPath -Recurse -Force;
 }
 
-New-Item $outputPath -ItemType Directory -Force | Out-Null;
+New-Item -Path $outputPath -ItemType Directory -Force | Out-Null;
+$outputPath = Resolve-Path -Path $outputPath;
 
 Describe 'Workspace collection' {
 
@@ -53,25 +54,24 @@ Describe 'Workspace collection' {
         }
     }
 
-    # Context 'Publish a module for local pull server' {
+    Context 'Publish a module for local pull server' {
 
-    #     # Init the workspace
-    #     $contextPath = Join-Path -Path $outputPath -ChildPath 'PublishCollectionPullServer';
-    #     Initialize-DOKDsc -Path $contextPath -Force;
+        # Init the workspace
+        $contextPath = Join-Path -Path $outputPath -ChildPath 'PublishCollectionPullServer';
+        Initialize-DOKDsc -Path $contextPath -Force;
 
-    #     New-Item -Path "$contextPath\build\SampleConfiguration\Configuration" -ItemType Directory -Force | Out-Null;
-    #     New-Item -Path "$contextPath\src\SampleConfiguration" -ItemType Directory -Force | Out-Null;
+        New-Item -Path "$contextPath\src\Test" -ItemType Directory -Force | Out-Null;
 
-    #     Copy-Item -Path "$here\SampleConfiguration.ps1" -Destination "$contextPath\src\Test\SampleConfiguration.ps1"
+        Copy-Item -Path "$here\SampleConfiguration.ps1" -Destination "$contextPath\src\Test\SampleConfiguration.ps1";
 
-    #     New-DOKDscCollection -WorkspacePath $contextPath -Name 'SampleConfiguration';
+        New-DOKDscCollection -WorkspacePath $contextPath -Name 'Test' -Path "$contextPath\src\Test\SampleConfiguration.ps1";
 
-    #     Publish-DOKDscCollection -WorkspacePath $contextPath -Name 'SampleConfiguration';
+        Publish-DOKDscCollection -WorkspacePath $contextPath -Name 'Test';
 
-    #     It 'Publishes the configuration script' {
-    #         Test-Path -Path "$contextPath\build\SampleConfiguration\Configuration\SampleConfiguration.ps1" | Should be $True;
-    #     }
-    # }
+        It 'Configuration is published to collection' {
+            Test-Path -Path "$contextPath\build\Test\SampleConfiguration.ps1" | Should be $True;
+        }
+    }
 }
 
 # EOF
