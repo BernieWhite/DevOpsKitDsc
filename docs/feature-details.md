@@ -2,6 +2,19 @@
 
 The following sections decribe DOKD features that enhance use of PowerShell Desired State Configuration (DSC).
 
+## Build
+
+### Incremental build
+
+When using incremental build, DSC configurations are only built when they have changed. This can add up to a substantial reducion in build time, when a large number of nodes exist in a collection.
+
+The incremental build feature generates an integrity hash based on:
+
+- Configuration script
+- Node data
+
+By default integrity data is stored in `.dok-obj` within a workspace. This path should be excluded from source control.
+
 ## Node configuration data
 
 ### Flat configuration data
