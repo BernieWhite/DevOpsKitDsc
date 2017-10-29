@@ -17,6 +17,13 @@ namespace DevOpsKitDsc.Workspace
         AzureAutomationService
     }
 
+    public enum CollectionBuildMode : byte
+    {
+        Incremental = 1,
+
+        Full = 2
+    }
+
     [JsonObject()]
     public sealed class CollectionOption
     {
@@ -26,11 +33,18 @@ namespace DevOpsKitDsc.Workspace
         [JsonProperty(PropertyName = "replaceNodeData")]
         public bool ReplaceNodeData;
 
+        [JsonProperty(PropertyName = "buildMode")]
+        public CollectionBuildMode BuildMode;
+
+        [JsonProperty(PropertyName = "signaturePath")]
+        public string SignaturePath;
+
         public CollectionOption()
         {
             // Set defaults
             Target = ConfigurationOptionTarget.FileSystem;
             ReplaceNodeData = false;
+            BuildMode = CollectionBuildMode.Incremental;
         }
 
         public static implicit operator CollectionOption(Hashtable value)

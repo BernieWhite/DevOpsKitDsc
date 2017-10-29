@@ -297,17 +297,14 @@ Describe 'Node module' {
 
         $Global:TestVars['CompileConfiguration::ContextPath'] = $contextPath;
 
-        Mock -CommandName 'Import-DOKDscWorkspaceSetting' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
-            $default = [DevOpsKitDsc.Workspace.WorkspaceHelper]::LoadDefault();
-
-            $configuration = New-Object -TypeName DevOpsKitDsc.Workspace.Collection;
-            $configuration.Path = "$($Global:TestVars['Here'])\SampleConfiguration.ps1";
-            $configuration.Nodes = [String[]]@('Test');
-
-            $default.Collections.Add($configuration);
-
-            return $default;
+        $collectionParams = @{
+            WorkspacePath = $contextPath
+            Name = 'Test'
+            Nodes = @('Test')
+            Path = "$($Global:TestVars['Here'])\SampleConfiguration.ps1"
         }
+
+        New-DOKDscCollection @collectionParams;
 
         Mock -CommandName 'ImportNodeData' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
             $result = New-Object -TypeName PSObject -Property @{
@@ -325,10 +322,10 @@ Describe 'Node module' {
             return $result;
         }
 
-        $nodeMofPath = Join-Path -Path $contextPath -ChildPath 'build\Test.mof';
+        $nodeMofPath = Join-Path -Path $contextPath -ChildPath 'build\Test\Test.mof';
         Invoke-DOKDscBuild -WorkspacePath $contextPath;
 
-        It 'Node configuration is generated successfully' {
+        It 'Configuration is built' {
             Test-Path -Path $nodeMofPath -PathType Leaf | Should be $True;
         }
 
@@ -342,6 +339,24 @@ Describe 'Node module' {
 
         It 'Checksum matches expected value' {
             Get-Content -Path "$nodeMofPath.checksum" -Raw | Should be (Get-FileHash -Path $nodeMofPath -Algorithm SHA256).Hash;
+        }
+
+        Set-DOKDscWorkspaceOption -WorkspacePath $contextPath -OutputPath '.\build2';
+
+        Invoke-DOKDscBuild -WorkspacePath $contextPath;
+        $nodeMofPath2 = Join-Path -Path $contextPath -ChildPath 'build2\Test\Test.mof';
+
+        It 'Incremental configuration not built' {
+            Test-Path -Path $nodeMofPath2 -PathType Leaf | Should be $False;
+        }
+
+        Set-DOKDscWorkspaceOption -WorkspacePath $contextPath -OutputPath '.\build3';
+        
+        Invoke-DOKDscBuild -WorkspacePath $contextPath -Force;
+        $nodeMofPath3 = Join-Path -Path $contextPath -ChildPath 'build3\Test\Test.mof';
+
+        It 'Forced configuration is built' {
+            Test-Path -Path $nodeMofPath3 -PathType Leaf | Should be $True;
         }
     }
 }

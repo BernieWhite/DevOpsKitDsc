@@ -180,7 +180,10 @@ function New-DOKDscCollection {
         [String]$Path,
 
         [Parameter(Mandatory = $False)]
-        [DevOpsKitDsc.Workspace.CollectionOption]$Options
+        [DevOpsKitDsc.Workspace.CollectionOption]$Options,
+
+        [Parameter(Mandatory = $False)]
+        [String[]]$Nodes
     )
 
     process {
@@ -221,6 +224,11 @@ function New-DOKDscCollection {
 
         if ($PSBoundParameters.ContainsKey('Options')) {
             $c.Options = $Options;
+        }
+
+        if ($PSBoundParameters.ContainsKey('Nodes')) {
+            $c.Nodes = New-Object -TypeName 'System.Collections.Generic.List[String]';
+            $c.Nodes.AddRange($Nodes);
         }
         
         $setting.Collections.Add($c);
@@ -302,10 +310,14 @@ function Invoke-DOKDscBuild {
         [Object]$ConfigurationData,
 
         [Parameter(Mandatory = $False)]
-        [System.Collections.IDictionary]$Parameters
+        [System.Collections.IDictionary]$Parameters,
 
         # [Parameter(Mandatory = $False)]
         # [Switch]$Wait = $False
+
+        # Force build to occur even if configuration is not stale
+        [Parameter(Mandatory = $False)]
+        [Switch]$Force = $False
     )
 
     begin {
@@ -357,6 +369,7 @@ function Invoke-DOKDscBuild {
                 $nodeData = ImportNodeData -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
                 
                 foreach ($node in $nodeData) {
+
                     Write-Verbose -Message "[DOKDsc][$dokOperation] -- Processing node: $($node.InstanceName)";
                     
                     try {
@@ -364,25 +377,41 @@ function Invoke-DOKDscBuild {
                         MergeNodeCertificate -InputObject $node -Path $node.BaseDirectory -InstanceName $node.InstanceName -Verbose:$VerbosePreference;
     
                         MergeConfiguration -InputObject $node -Collection $collection -Verbose:$VerbosePreference;
-    
-                        # Create job parameters
-                        $jobParams = New-Object -TypeName PSObject -Property @{
-                            ConfigurationName = $configuration.Name;
-                            ConfigurationData = $node.ConfigurationData;
-                            Parameters = $Parameters;
-                            Path = $sourcePath;
-                            OutputPath = $outputPath;
-                            ModulePath = [String[]]$setting.Options.ModulePath;
-                            AddModulesToSearchPath = $setting.Options.AddModulesToSearchPath;
-                        }
-    
-                        # Start the job
-                        # $job = Start-Job -ScriptBlock ${function:BuildConfiguration} -InputObject $jobParams;
-    
-                        BuildConfiguration -InputObject $jobParams -Verbose:$VerbosePreference;
 
-                        # Build documentation
-                        BuildDocumentation -Collection $collection -Path $outputPath -OutputPath $outputPath -Verbose:$VerbosePreference;
+                        $signatureParams = @{
+                            InstanceName = $node.InstanceName
+                            WorkspacePath = $WorkspacePath
+                            Collection = $collection
+                            Node = $node.ConfigurationData
+                        }
+
+                        $signature = NewBuildSignature @signatureParams -Verbose:$VerbosePreference;
+
+                        $signaturePath = Join-Path -Path $WorkspacePath -ChildPath "\.dokd-obj";
+
+                        if ($Force -or ($Null -ne $collection.Options -and $collection.Options.BuildMode -eq [DevOpsKitDsc.Workspace.CollectionBuildMode]::Full) -or (ShouldBuildConfiguration -Signature $signature -Path $signaturePath -InstanceName $node.InstanceName -CollectionName $collection.Name)) {
+
+                            # Create job parameters
+                            $jobParams = New-Object -TypeName PSObject -Property @{
+                                ConfigurationName = $configuration.Name;
+                                ConfigurationData = $node.ConfigurationData;
+                                Parameters = $Parameters;
+                                Path = $sourcePath;
+                                OutputPath = $outputPath;
+                                ModulePath = [String[]]$setting.Options.ModulePath;
+                                AddModulesToSearchPath = $setting.Options.AddModulesToSearchPath;
+                            }
+
+                            WriteBuildSignature -Path $signaturePath -Signature $signature;
+
+                            # Start the job
+                            # $job = Start-Job -ScriptBlock ${function:BuildConfiguration} -InputObject $jobParams;
+
+                            BuildConfiguration -InputObject $jobParams -Verbose:$VerbosePreference;
+
+                            # Build documentation
+                            BuildDocumentation -Collection $collection -Path $outputPath -OutputPath $outputPath -Verbose:$VerbosePreference;
+                        }
                     } catch {
                         Write-Error -Message "Failed to build configuration for $($node.InstanceName). $($_.Exception.Message)";
                     }
@@ -1198,8 +1227,10 @@ function BuildConfiguration {
                 $configParams += $Parameters;
             }
 
+            # Dot source the configuration script
             . "$configurationScript";
 
+            # Execute the configuration script
             $buildResult = & $ConfigurationName @configParams;
 
             if ($Null -ne $buildResult -and $buildResult -is [System.IO.FileInfo]) {
@@ -1217,6 +1248,128 @@ function BuildConfiguration {
                 # [System.Environment]::SetEnvironmentVariable('PSModulePath', "$currentPSModulePath", 'Process')
             }
         }
+    }
+}
+
+# Checks if build should continue if existing configuration is stale
+function ShouldBuildConfiguration {
+
+    [CmdletBinding()]
+    [OutputType([System.Boolean])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Build.BuildSignature]$Signature,
+
+        [Parameter(Mandatory = $True)]
+        [String]$Path,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$CollectionName
+    )
+
+    process {
+
+        $previousSignature = ReadBuildSignature -InstanceName $InstanceName -CollectionName $CollectionName -Path $Path -Verbose:$VerbosePreference;
+
+        # Check if the build integrity matches the previous build
+        if ($Null -ne $previousSignature -and $Signature.buildIntegrity -eq $previousSignature.buildIntegrity) {
+
+            return $False;
+        }
+
+        # Build is stale, build should occur
+        return $True;
+    }
+}
+
+function NewBuildSignature {
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$WorkspacePath,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName,
+
+        [Parameter(Mandatory = $True)]
+        [Hashtable]$Node,
+
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Workspace.Collection]$Collection
+    )
+
+    process {
+        
+        $signature = New-Object -TypeName DevOpsKitDsc.Build.BuildSignature;
+
+        $signature.InstanceName = $InstanceName;
+        $signature.CollectionName = $Collection.Name;
+
+        # Add configuration script
+        $signature.Path = $Collection.Path;
+
+        # Add node data
+        $signature.Node = $node;
+
+        # Calculate build integrity
+        $signature.Update();
+
+        return $signature;
+    }
+}
+
+function ReadBuildSignature {
+
+    [CmdletBinding()]
+    [OutputType([DevOpsKitDsc.Build.BuildSignature])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$Path,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$CollectionName
+    )
+
+    process {
+
+        $filePath = Join-Path -Path $Path -ChildPath "$CollectionName.$InstanceName.json";
+
+        if (!(Test-Path -Path $filePath)) {
+            return $Null;
+        }
+
+        return [DevOpsKitDsc.Build.SignatureHelper]::LoadFrom($filePath);
+    }
+}
+
+function WriteBuildSignature {
+
+    [CmdletBinding()]
+    [OutputType([void])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$Path,
+
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Build.BuildSignature]$Signature
+    )
+
+    process {
+
+        if (!(Test-Path -Path $Path)) {
+            New-Item -Path $Path -ItemType Directory -Force | Out-Null;
+        }
+
+        $filePath = Join-Path -Path $Path -ChildPath "$($signature.CollectionName).$($signature.InstanceName).json";
+
+        return [DevOpsKitDsc.Build.SignatureHelper]::SaveTo($filePath, $Signature);
     }
 }
 
