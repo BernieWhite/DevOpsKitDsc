@@ -58,7 +58,7 @@ function Register-DOKDscNode {
         CreatePath -Path $nodePath;
 
         # Import node data
-        $nodeData = ImportNodeData -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
+        $nodeData = ImportNodeData -WorkspacePath $WorkspacePath -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
 
         if ($Null -eq $nodeData -or $nodeData.Length -eq 0) {
             Write-Error -Message $LocalizedData.ErrorMissingNodeData -Category ObjectNotFound -TargetObject $nodePath -ErrorAction Stop;
@@ -110,7 +110,7 @@ function Import-DOKDscNodeConfiguration {
         $nodePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $setting.Options.NodePath -Verbose:$VerbosePreference;
 
         # Import node data
-        $nodeData = ImportNodeData -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
+        $nodeData = ImportNodeData -WorkspacePath $WorkspacePath -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
 
         if ($Null -eq $nodeData -or $nodeData.Length -eq 0) {
             Write-Error -Message ($LocalizedData.ErrorMissingNodeData -f $WorkspacePath) -Category ObjectNotFound -ErrorAction Stop;
@@ -360,13 +360,14 @@ function Invoke-DOKDscBuild {
             # Ensure that the output path exists
             $outputPath = CreatePath -Path $outputPath -PassThru -Verbose:$VerbosePreference;
 
-            $sourcePath = (Get-Item -Path $collection.Path).FullName;
+            $sourcePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Path;
 
             $nodePath = $collection.Nodes;
 
             if ($Null -ne $nodePath) {
+
                 # Import node data
-                $nodeData = ImportNodeData -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
+                $nodeData = ImportNodeData -WorkspacePath $WorkspacePath -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
                 
                 foreach ($node in $nodeData) {
 
@@ -1379,6 +1380,9 @@ function ImportNodeData {
     [OutputType([PSObject[]])]
     param (
         [Parameter(Mandatory = $True)]
+        [String]$WorkspacePath,
+
+        [Parameter(Mandatory = $True)]
         [String[]]$NodePath,
 
         [Parameter(Mandatory = $False)]
@@ -1404,7 +1408,7 @@ function ImportNodeData {
                 # return $Null;
             }
 
-            $pathFilter = Join-Path -Path $path -ChildPath '/';
+            $pathFilter = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $path -ChildPath '/';
 
             $result = Get-ChildItem -Path $pathFilter -File | Where-Object -FilterScript {
                 ($Null -eq $InstanceName -or $InstanceName.Count -eq 0) -or $InstanceName -contains $_.BaseName

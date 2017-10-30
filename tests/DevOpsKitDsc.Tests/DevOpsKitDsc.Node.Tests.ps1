@@ -22,6 +22,9 @@ Describe 'Node module' {
         Mock -CommandName 'ImportNodeData' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
             param (
                 [Parameter(Mandatory = $True)]
+                [String]$WorkspacePath,
+
+                [Parameter(Mandatory = $True)]
                 [String[]]$NodePath,
         
                 [Parameter(Mandatory = $False)]
@@ -244,6 +247,9 @@ Describe 'Node module' {
 
         Mock -CommandName 'ImportNodeData' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
             param (
+                [Parameter(Mandatory = $True)]
+                [String]$WorkspacePath,
+
                 [Parameter(Mandatory = $True)]
                 [String[]]$NodePath,
         
