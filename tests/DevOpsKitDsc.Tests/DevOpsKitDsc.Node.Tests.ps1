@@ -301,14 +301,17 @@ Describe 'Node module' {
         $contextPath = Join-Path -Path $outputPath -ChildPath 'CompileConfiguration';
         Initialize-DOKDsc -Path $contextPath -Force;
 
-        $Global:TestVars['CompileConfiguration::ContextPath'] = $contextPath;
+        $srcPath = Join-Path -Path $contextPath -ChildPath 'src\Test';
+        New-Item -Path $srcPath -ItemType Directory -Force | Out-Null;
 
         $collectionParams = @{
             WorkspacePath = $contextPath
             Name = 'Test'
             Nodes = @('Test')
-            Path = "$($Global:TestVars['Here'])\SampleConfiguration.ps1"
+            Path = '.\src\Test\SampleConfiguration.ps1'
         }
+
+        Copy-Item -Path "$here\SampleConfiguration.ps1" -Destination "$srcPath\" -Force;
 
         New-DOKDscCollection @collectionParams;
 

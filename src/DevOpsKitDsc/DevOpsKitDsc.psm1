@@ -312,9 +312,6 @@ function Invoke-DOKDscBuild {
         [Parameter(Mandatory = $False)]
         [System.Collections.IDictionary]$Parameters,
 
-        # [Parameter(Mandatory = $False)]
-        # [Switch]$Wait = $False
-
         # Force build to occur even if configuration is not stale
         [Parameter(Mandatory = $False)]
         [Switch]$Force = $False
@@ -405,27 +402,17 @@ function Invoke-DOKDscBuild {
 
                             WriteBuildSignature -Path $signaturePath -Signature $signature;
 
-                            # Start the job
-                            # $job = Start-Job -ScriptBlock ${function:BuildConfiguration} -InputObject $jobParams;
-
                             BuildConfiguration -InputObject $jobParams -Verbose:$VerbosePreference;
 
                             # Build documentation
-                            BuildDocumentation -Collection $collection -Path $outputPath -OutputPath $outputPath -Verbose:$VerbosePreference;
+                            BuildDocumentation -WorkspacePath $WorkspacePath -Collection $collection -Path $outputPath -OutputPath $outputPath -Verbose:$VerbosePreference;
                         }
                     } catch {
-                        Write-Error -Message "Failed to build configuration for $($node.InstanceName). $($_.Exception.Message)";
+                        Write-Error -Message "Failed to build configuration for $($node.InstanceName). $($_.Exception.Message)" -Exception $_.Exception;
                     }
                 }
             }
         }
-
-        # Wait for the job to return
-        # if ($Wait) {
-        #     $job | Receive-Job -Wait;
-        # } else {
-        #     $job;
-        # }
     }
 
     end {
@@ -1311,7 +1298,7 @@ function NewBuildSignature {
         $signature.CollectionName = $Collection.Name;
 
         # Add configuration script
-        $signature.Path = $Collection.Path;
+        $signature.Path = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $Collection.Path;
 
         # Add node data
         $signature.Node = $node;
@@ -1815,6 +1802,9 @@ function BuildDocumentation {
     [OutputType([void])]
     param (
         [Parameter(Mandatory = $True)]
+        [String]$WorkspacePath,
+
+        [Parameter(Mandatory = $True)]
         [DevOpsKitDsc.Workspace.Collection]$Collection,
 
         # The path to the .mof file
@@ -1839,7 +1829,9 @@ function BuildDocumentation {
             return;
         }
 
-        Invoke-DscNodeDocument -DocumentName $Collection.Docs.Name -Script $Collection.Docs.Path -Path $Path -OutputPath $OutputPath -Verbose:$VerbosePreference;
+        $templatePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $Collection.Docs.Path;
+
+        Invoke-DscNodeDocument -DocumentName $Collection.Docs.Name -Script $templatePath -Path $Path -OutputPath $OutputPath -Verbose:$VerbosePreference;
 
         # Write-Verbose -Message "[DOKDsc][$dokOperation] -- Update TOC: $($buildResult.FullName)";
 
