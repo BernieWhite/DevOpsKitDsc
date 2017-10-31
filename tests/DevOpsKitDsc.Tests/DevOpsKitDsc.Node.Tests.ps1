@@ -270,17 +270,21 @@ Describe 'Node module' {
             }
         }
 
-        Mock -CommandName 'RegisterNode' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
+        Mock -CommandName 'GetNodeSessionConfiguration' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
             [CmdletBinding()]
+            [OutputType([Hashtable])]
             param (
                 [Parameter(Mandatory = $True)]
-                [PSObject]$Node,
-        
-                [Parameter(Mandatory = $True)]
-                [String]$OutputPath
+                [String]$InstanceName
             )
 
-            process { }
+            process {
+                return @{ UseSession = $False; CreateCertificate = $True; };
+            }
+        }
+
+        Mock -CommandName 'EnrollCertificate' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
+
         }
 
         # Init the workspace
@@ -291,7 +295,7 @@ Describe 'Node module' {
         Register-DOKDscNode -WorkspacePath $contextPath -InstanceName 'Instance1';
 
         It 'Register node is called' {
-            Assert-MockCalled -CommandName 'RegisterNode' -ModuleName 'DevOpsKitDsc' -Times 1;
+            Assert-MockCalled -CommandName 'GetNodeSessionConfiguration' -ModuleName 'DevOpsKitDsc' -Times 1;
         }
     }
 

@@ -884,18 +884,27 @@ function RegisterNode {
     )
 
     process {
-        $sessionParams = @{
-            ComputerName = $Node.InstanceName
-        };
-
-        if ($Node.InstanceName -eq 'localhost' -or $Node.InstanceName -eq $Env:COMPUTERNAME) {
-            $sessionParams['EnableNetworkAccess'] = $True;
-        }
-
-        $session = New-PSSession @sessionParams;
 
         # Setup the encryption certificate
-        TryDscEncryptionCertificate -Session $session -Path $OutputPath -Verbose:$VerbosePreference | Out-Null;
+        TryDscEncryptionCertificate -InstanceName $Node.InstanceName -Path $OutputPath -Verbose:$VerbosePreference | Out-Null;
+    }
+}
+
+function GetNodeSessionConfiguration {
+
+    [CmdletBinding()]
+    [OutputType([Hashtable])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName
+    )
+
+    process {
+
+        return @{
+            UseSession = $True;
+            CreateCertificate = $True;
+        };
     }
 }
 
@@ -907,7 +916,7 @@ function TryDscEncryptionCertificate {
     param (
         # A remoting session to connect to
         [Parameter(Mandatory = $True)]
-        [System.Management.Automation.Runspaces.PSSession]$Session,
+        [String]$InstanceName,
 
         # The path to save the encryption public key to
         [Parameter(Mandatory = $True)]
@@ -916,14 +925,31 @@ function TryDscEncryptionCertificate {
 
     process {
 
+        $sessionConfig = GetNodeSessionConfiguration -InstanceName $InstanceName;
+
+        $commandParams = @{ };
+
+        if ($sessionConfig.UseSession) {
+
+            $sessionParams = @{
+                ComputerName = $InstanceName
+            };
+    
+            if ($InstanceName -eq 'localhost' -or $InstanceName -eq $Env:COMPUTERNAME) {
+                $sessionParams['EnableNetworkAccess'] = $True;
+            }
+
+            $commandParams = @{ Session = (New-PSSession @sessionParams); };
+        }
+
         # Try to get the encryption certificate
-        $certificate = Invoke-Command -Session $Session -ScriptBlock ${function:GetCertificate};
+        $certificate = Invoke-Command @commandParams -ScriptBlock ${function:GetCertificate} -ArgumentList $sessionConfig;
 
         # Create a new encryption certificate as required
-        if ($Null -eq $certificate) {
-            $certificate = Invoke-Command -Session $Session -ScriptBlock ${function:NewCertificate};
+        if ($Null -eq $certificate -and $sessionConfig.CreateCertificate) {
+            $certificate = Invoke-Command @commandParams -ScriptBlock ${function:NewCertificate} -ArgumentList $sessionConfig;
         } else {
-            Write-Verbose -Message ($LocalizedData.HasEncryptionCertificate -f $Session.ComputerName, $certificate.Thumbprint);
+            Write-Verbose -Message ($LocalizedData.HasEncryptionCertificate -f $InstanceName, $certificate.Thumbprint);
         }
 
         if ($Null -eq $certificate) {
@@ -933,7 +959,7 @@ function TryDscEncryptionCertificate {
         # Strongly type the result
         $result = New-Object -TypeName Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList @(,$certificate.GetRawCertData());
 
-        $result | Export-Certificate -FilePath "$Path\$($Session.ComputerName).cer" -Force;
+        $result | Export-Certificate -FilePath "$Path\$InstanceName.cer" -Force;
 
         # Return the certificate
         return $result;
@@ -944,7 +970,8 @@ function GetCertificate {
 
     [CmdletBinding()]
     param (
-        
+        [Parameter(Position = 0)]
+        [Hashtable]$Options
     )
 
     process {
@@ -959,10 +986,14 @@ function NewCertificate {
 
     [CmdletBinding()]
     param (
-        
+        [Parameter(Position = 0)]
+        [Hashtable]$Options
     )
 
     process {
+
+        # This function is not cross platform and needs to be updated to work with Core PowerShell.
+
         # Subject processing
 
         [String]$Subject = "CN=$Env:COMPUTERNAME";
@@ -1000,13 +1031,14 @@ function NewCertificate {
         [String]$FriendlyName = 'DSC Credential Encryption';
         $Description = 'This is an encryption certificate for DSC.';
 
-        [datetime]$NotBefore = [DateTime]::Now.AddDays(-1);
-		[datetime]$NotAfter = $NotBefore.AddDays(365);
+        [DateTime]$NotBefore = [DateTime]::Now.AddDays(-1);
+		[DateTime]$NotAfter = $NotBefore.AddDays(365);
         
         $OIDs = New-Object -ComObject X509Enrollment.CObjectIDs;
 
         $OID = New-Object -ComObject X509Enrollment.CObjectID;
         $OID.InitializeFromValue($EnhancedKeyUsage.Value);
+
         # http://msdn.microsoft.com/en-us/library/aa376785(VS.85).aspx
         $OIDs.Add($OID);
 		
@@ -1046,15 +1078,17 @@ function NewCertificate {
                             try {
                                 $Bytes = ([Security.Cryptography.X509Certificates.X500DistinguishedName]$altname).RawData
                                 $Name.InitializeFromRawData($DirectoryName,$Base64,[Convert]::ToBase64String($Bytes))
-                            } catch {$Name.InitializeFromString($DNSName,$altname)}
+                            } catch {
+                                $Name.InitializeFromString($DNSName,$altname)
+                            }
                         }
                     }
                 }
+                
                 $Names.Add($Name)
             }
 
-            $SAN.InitializeEncode($Names)
-            # $ExtensionsToAdd += "SAN"
+            $SAN.InitializeEncode($Names);
 
             $certificateExtensions += $SAN;
         }
@@ -1098,39 +1132,53 @@ function NewCertificate {
             $csr.X509Extensions.Add($item);
         };
 
-        # if (![string]::IsNullOrEmpty($SerialNumber)) {
-        #     if ($SerialNumber -match "[^0-9a-fA-F]") {throw "Invalid serial number specified."}
-        #     if ($SerialNumber.Length % 2) {$SerialNumber = "0" + $SerialNumber}
-        #     $Bytes = $SerialNumber -split "(.{2})" | Where-Object {$_} | ForEach-Object{[Convert]::ToByte($_,16)}
-        #     $ByteString = [Convert]::ToBase64String($Bytes)
-        #     $Cert.SerialNumber.InvokeSet($ByteString,1)
-        # }
-
         $csr.SignatureInformation.HashAlgorithm = $signatureOid;
 
         # Completing certificate request template building
         $csr.Encode();
-        
-        # interface: http://msdn.microsoft.com/en-us/library/aa377809(VS.85).aspx
-        $certificateEnrollment = New-Object -ComObject X509Enrollment.CX509enrollment;
-        $certificateEnrollment.InitializeFromRequest($csr);
-        $certificateEnrollment.CertificateFriendlyName = $FriendlyName;
-        $certificateEnrollment.CertificateDescription = $Description;
+
+        # Enroll the certificate from the provided CSR
+        return EnrollCertificate -CSR $csr -FriendlyName $FriendlyName -Description $Description;
+    }
+}
+
+function EnrollCertificate {
+
+    [CmdletBinding()]
+    [OutputType([Security.Cryptography.X509Certificates.X509Certificate2])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [Object]$CSR,
+
+        [Parameter(Mandatory = $True)]
+        [String]$FriendlyName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$Description
+    )
+
+    process {
+
+        # Interface: http://msdn.microsoft.com/en-us/library/aa377809(VS.85).aspx
+        $enrollment = New-Object -ComObject X509Enrollment.CX509enrollment;
+        $enrollment.InitializeFromRequest($CSR);
+        $enrollment.CertificateFriendlyName = $FriendlyName;
+        $enrollment.CertificateDescription = $Description;
 
         # Create the request with base64 encoding
-        $endCert = $certificateEnrollment.CreateRequest(0x1);
-
+        $endCert = $enrollment.CreateRequest(0x1);
+            
         # Install the certificate response
-        $certificateEnrollment.InstallResponse(
+        $enrollment.InstallResponse(
             0x2, # Allow untrusted, this self-signed certificate will not chain to a trust root
             $endCert,
             0x1, # Use base64 encoding
             ''
         );
 
-        [Byte[]]$CertBytes = [Convert]::FromBase64String($endCert);
+        [Byte[]]$certBytes = [System.Convert]::FromBase64String($endCert);
 
-        New-Object Security.Cryptography.X509Certificates.X509Certificate2 @(,$CertBytes);
+        return New-Object -TypeName Security.Cryptography.X509Certificates.X509Certificate2 @(,$certBytes);
     }
 }
 
