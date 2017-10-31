@@ -27,16 +27,16 @@ namespace DevOpsKitDsc.Workspace
     [JsonObject()]
     public sealed class CollectionOption
     {
-        [JsonProperty(PropertyName = "target")]
+        [JsonProperty(PropertyName = "target", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public ConfigurationOptionTarget Target;
 
-        [JsonProperty(PropertyName = "replaceNodeData")]
+        [JsonProperty(PropertyName = "replaceNodeData", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ReplaceNodeData;
 
-        [JsonProperty(PropertyName = "buildMode")]
-        public CollectionBuildMode BuildMode;
+        [JsonProperty(PropertyName = "buildMode", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public Nullable<CollectionBuildMode> BuildMode;
 
-        [JsonProperty(PropertyName = "signaturePath")]
+        [JsonProperty(PropertyName = "signaturePath", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string SignaturePath;
 
         public CollectionOption()
@@ -44,12 +44,13 @@ namespace DevOpsKitDsc.Workspace
             // Set defaults
             Target = ConfigurationOptionTarget.FileSystem;
             ReplaceNodeData = false;
-            BuildMode = CollectionBuildMode.Incremental;
         }
 
         public static implicit operator CollectionOption(Hashtable value)
         {
             var result = new CollectionOption();
+
+            // Bind hashtable options to new CollectionOption object
 
             if (value.ContainsKey("Target")) {
                 result.Target = (ConfigurationOptionTarget)value["Target"];
@@ -57,6 +58,14 @@ namespace DevOpsKitDsc.Workspace
 
             if (value.ContainsKey("ReplaceNodeData")) {
                 result.ReplaceNodeData = (bool)value["ReplaceNodeData"];
+            }
+
+            if (value.ContainsKey("BuildMode")) {
+                result.BuildMode = (CollectionBuildMode)value["BuildMode"];
+            }
+
+            if (value.ContainsKey("SignaturePath")) {
+                result.SignaturePath = (string)value["SignaturePath"];
             }
 
             return result;

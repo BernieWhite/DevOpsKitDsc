@@ -385,7 +385,11 @@ function Invoke-DOKDscBuild {
 
                         $signature = NewBuildSignature @signatureParams -Verbose:$VerbosePreference;
 
-                        $signaturePath = Join-Path -Path $WorkspacePath -ChildPath "\.dokd-obj";
+                        $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path '.dokd-obj';
+
+                        if (![String]::IsNullOrEmpty($collection.Options.SignaturePath)) {
+                            $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Options.SignaturePath;
+                        }
 
                         if ($Force -or ($Null -ne $collection.Options -and $collection.Options.BuildMode -eq [DevOpsKitDsc.Workspace.CollectionBuildMode]::Full) -or (ShouldBuildConfiguration -Signature $signature -Path $signaturePath -InstanceName $node.InstanceName -CollectionName $collection.Name)) {
 

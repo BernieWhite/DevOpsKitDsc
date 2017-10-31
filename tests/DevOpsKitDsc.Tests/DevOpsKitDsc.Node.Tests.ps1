@@ -299,10 +299,10 @@ Describe 'Node module' {
         }
     }
 
-    Context 'Generate node configuration' {
+    Context 'Build node' {
 
         # Init the workspace
-        $contextPath = Join-Path -Path $outputPath -ChildPath 'CompileConfiguration';
+        $contextPath = Join-Path -Path $outputPath -ChildPath 'BuildNode';
         Initialize-DOKDsc -Path $contextPath -Force;
 
         $srcPath = Join-Path -Path $contextPath -ChildPath 'src\Test';
@@ -335,8 +335,9 @@ Describe 'Node module' {
             return $result;
         }
 
-        $nodeMofPath = Join-Path -Path $contextPath -ChildPath 'build\Test\Test.mof';
+        # Build all collection in the default output path
         Invoke-DOKDscBuild -WorkspacePath $contextPath;
+        $nodeMofPath = Join-Path -Path $contextPath -ChildPath 'build\Test\Test.mof';
 
         It 'Configuration is built' {
             Test-Path -Path $nodeMofPath -PathType Leaf | Should be $True;
@@ -353,23 +354,90 @@ Describe 'Node module' {
         It 'Checksum matches expected value' {
             Get-Content -Path "$nodeMofPath.checksum" -Raw | Should be (Get-FileHash -Path $nodeMofPath -Algorithm SHA256).Hash;
         }
-
+        
+        # Build all collections with an alternative output path set
         Set-DOKDscWorkspaceOption -WorkspacePath $contextPath -OutputPath '.\build2';
-
         Invoke-DOKDscBuild -WorkspacePath $contextPath;
         $nodeMofPath2 = Join-Path -Path $contextPath -ChildPath 'build2\Test\Test.mof';
 
+        # Check that the same configuration was not rebuild
         It 'Incremental configuration not built' {
             Test-Path -Path $nodeMofPath2 -PathType Leaf | Should be $False;
         }
 
+        # Force build all collections with an alternative output path set
         Set-DOKDscWorkspaceOption -WorkspacePath $contextPath -OutputPath '.\build3';
-        
         Invoke-DOKDscBuild -WorkspacePath $contextPath -Force;
         $nodeMofPath3 = Join-Path -Path $contextPath -ChildPath 'build3\Test\Test.mof';
-
+        
+        # Check that configuration is built again because force was used
         It 'Forced configuration is built' {
             Test-Path -Path $nodeMofPath3 -PathType Leaf | Should be $True;
+        }
+    }
+
+    Context 'Build incremental' {
+
+        # Init the workspace
+        $contextPath = Join-Path -Path $outputPath -ChildPath 'BuildNodeIncremental';
+        Initialize-DOKDsc -Path $contextPath -Force;
+
+        $srcPath = Join-Path -Path $contextPath -ChildPath 'src\Test';
+        New-Item -Path $srcPath -ItemType Directory -Force | Out-Null;
+        $incPath = Join-Path -Path $contextPath -ChildPath 'inc';
+        New-Item -Path $incPath -ItemType Directory -Force | Out-Null;
+
+        $collectionParams = @{
+            WorkspacePath = $contextPath
+            Name = 'Test'
+            Nodes = @('Test')
+            Path = '.\src\Test\SampleConfiguration.ps1'
+            Options = @{
+                SignaturePath = '.\inc'
+            }
+        }
+
+        Copy-Item -Path "$here\SampleConfiguration.ps1" -Destination "$srcPath\" -Force;
+
+        New-DOKDscCollection @collectionParams;
+
+        Mock -CommandName 'ImportNodeData' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
+            $result = New-Object -TypeName PSObject -Property @{
+                InstanceName = 'Test';
+                BaseDirectory = "$($Global:TestVars['Here'])\nodes\Test";
+                ConfigurationData = @{
+                    AllNodes = @(
+                        @{
+                            NodeName = 'Test'
+                        }
+                    )
+                }
+            }
+
+            return $result;
+        }
+
+        # Build all collection in the default output path
+        Invoke-DOKDscBuild -WorkspacePath $contextPath;
+        $nodeMofPath = Join-Path -Path $contextPath -ChildPath 'build\Test\Test.mof';
+        $buildSignaturePath = Join-Path -Path $contextPath -ChildPath 'inc\Test.Test.json';
+
+        It 'Configuration is built' {
+            Test-Path -Path $nodeMofPath -PathType Leaf | Should be $True;
+        }
+
+        It 'Build signature was created' {
+            Test-Path -Path $buildSignaturePath -PathType Leaf | Should be $True;
+        }
+        
+        # Build all collections with an alternative output path set
+        Set-DOKDscWorkspaceOption -WorkspacePath $contextPath -OutputPath '.\build2';
+        Invoke-DOKDscBuild -WorkspacePath $contextPath;
+        $nodeMofPath2 = Join-Path -Path $contextPath -ChildPath 'build2\Test\Test.mof';
+
+        # Check that the same configuration was not rebuild
+        It 'Incremental configuration not built' {
+            Test-Path -Path $nodeMofPath2 -PathType Leaf | Should be $False;
         }
     }
 }
