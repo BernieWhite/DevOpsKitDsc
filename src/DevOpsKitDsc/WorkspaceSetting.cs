@@ -39,6 +39,9 @@ namespace DevOpsKitDsc.Workspace
         [JsonProperty(PropertyName = "signaturePath", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string SignaturePath;
 
+        [JsonProperty(PropertyName = "signatureSasToken", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string SignatureSasToken;
+
         public CollectionOption()
         {
             // Set defaults

@@ -88,7 +88,11 @@
                                     },
                                     "signaturePath": {
                                         "type": "string",
-                                        "description": "The path to the location containing build sognatures."
+                                        "description": "The path to the location containing build signatures."
+                                    },
+                                    "signatureSasToken": {
+                                        "type": "string",
+                                        "description": "An optional shared access secret (SAS) token for authentication to the signature path."
                                     }
                                 }
                             },
