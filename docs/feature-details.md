@@ -15,6 +15,12 @@ The incremental build feature generates an integrity hash based on:
 
 By default integrity data is stored in `.dok-obj` within a workspace. This path should be excluded from source control.
 
+When using incremental build within a continious integration/continious deployment pipline override the default path to a share or web location.
+
+### Documentation
+
+Automatically generate per server documentation in markdown that can be shared across teams.
+
 ## Node configuration data
 
 ### Flat configuration data
@@ -37,7 +43,7 @@ When using _configuration data_, DSC requires that the configuration of a node b
     AllNodes = @(
         @{
             NodeName = 'CTSTW01'
-
+            
             Environment = 'Test'
 
             # Add server roles here

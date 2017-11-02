@@ -3,11 +3,11 @@
 #
 
 # Import helper classes
-if (!$PSVersionTable.PSEdition -or $PSVersionTable.PSEdition -eq "Desktop") {
-    Import-Module -Name "$PSScriptRoot/bin/Debug/net451/publish/DevOpsKitDsc.dll" | Out-Null
+if (!$PSVersionTable.PSEdition -or $PSVersionTable.PSEdition -eq 'Desktop') {
+    Add-Type -Path (Join-Path -Path $PSScriptRoot -ChildPath "/bin/Debug/net451/publish/DevOpsKitDsc.dll") | Out-Null;
 }
 else {
-    Import-Module -Name "$PSScriptRoot/bin/Debug/netstandard1.6/publish/DevOpsKitDsc.dll" | Out-Null
+    Add-Type -Path (Join-Path -Path $PSScriptRoot -ChildPath "/bin/Debug/netstandard1.6/publish/DevOpsKitDsc.dll") | Out-Null;
 }
 
 #
@@ -383,15 +383,23 @@ function Invoke-DOKDscBuild {
                             Node = $node.ConfigurationData
                         }
 
+                        # Create a build signature
                         $signature = NewBuildSignature @signatureParams -Verbose:$VerbosePreference;
-
+                        
+                        # Get the default signature path
                         $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path '.dokd-obj';
-
+                        
+                        # Use an alternative path for storing signatures
                         if (![String]::IsNullOrEmpty($collection.Options.SignaturePath)) {
-                            $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Options.SignaturePath;
+
+                            if ($collection.Options.SignaturePath -match '^http(s){0,1}\:\/\/') {
+                                $signaturePath = $collection.Options.SignaturePath;
+                            } else {
+                                $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Options.SignaturePath;
+                            }
                         }
 
-                        if ($Force -or ($Null -ne $collection.Options -and $collection.Options.BuildMode -eq [DevOpsKitDsc.Workspace.CollectionBuildMode]::Full) -or (ShouldBuildConfiguration -Signature $signature -Path $signaturePath -InstanceName $node.InstanceName -CollectionName $collection.Name)) {
+                        if ($Force -or ($Null -ne $collection.Options -and $collection.Options.BuildMode -eq [DevOpsKitDsc.Workspace.CollectionBuildMode]::Full) -or (ShouldBuildConfiguration -Signature $signature -SasToken $collection.Options.SignatureSasToken -Path $signaturePath -InstanceName $node.InstanceName -CollectionName $collection.Name)) {
 
                             # Create job parameters
                             $jobParams = New-Object -TypeName PSObject -Property @{
@@ -403,9 +411,11 @@ function Invoke-DOKDscBuild {
                                 ModulePath = [String[]]$setting.Options.ModulePath;
                                 AddModulesToSearchPath = $setting.Options.AddModulesToSearchPath;
                             }
-
-                            WriteBuildSignature -Path $signaturePath -Signature $signature;
-
+                            
+                            # Save the build signature
+                            WriteBuildSignature -Path $signaturePath -SasToken $collection.Options.SignatureSasToken -Signature $signature;
+                            
+                            # Build the configuration
                             BuildConfiguration -InputObject $jobParams -Verbose:$VerbosePreference;
 
                             # Build documentation
@@ -1303,6 +1313,9 @@ function ShouldBuildConfiguration {
         [Parameter(Mandatory = $True)]
         [String]$Path,
 
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
         [Parameter(Mandatory = $True)]
         [String]$InstanceName,
 
@@ -1312,7 +1325,7 @@ function ShouldBuildConfiguration {
 
     process {
 
-        $previousSignature = ReadBuildSignature -InstanceName $InstanceName -CollectionName $CollectionName -Path $Path -Verbose:$VerbosePreference;
+        $previousSignature = ReadBuildSignature -InstanceName $InstanceName -CollectionName $CollectionName -Path $Path -SasToken $SasToken -Verbose:$VerbosePreference;
 
         # Check if the build integrity matches the previous build
         if ($Null -ne $previousSignature -and $Signature.buildIntegrity -eq $previousSignature.buildIntegrity) {
@@ -1370,6 +1383,9 @@ function ReadBuildSignature {
         [Parameter(Mandatory = $True)]
         [String]$Path,
 
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
         [Parameter(Mandatory = $True)]
         [String]$InstanceName,
 
@@ -1379,13 +1395,71 @@ function ReadBuildSignature {
 
     process {
 
-        $filePath = Join-Path -Path $Path -ChildPath "$CollectionName.$InstanceName.json";
+        if ($Path -like "https://*") {
 
-        if (!(Test-Path -Path $filePath)) {
-            return $Null;
+            # Handle reading signatures from HTTPS endpoint
+            
+            # Get the endpoint URI
+            $endpointUri = GetSignatureEndpoint -Uri $Path -SasToken $SasToken -CollectionName $signature.CollectionName -InstanceName $signature.InstanceName;
+
+            # Generate the request
+            return ReadBuildSignatureWeb -Uri $endpointUri -Verbose:$VerbosePreference;
+
+        } elseif ($Path -like "http://") {
+
+            # Error if a HTTP endpoint is used
+            Write-Error -Message $LocalizedData.HttpNotSupported -Category InvalidOperation;
+        } else {
+
+            # Get the file path
+            $filePath = Join-Path -Path $Path -ChildPath "$CollectionName.$InstanceName.json";
+            
+            # Check if the file exists
+            if (!(Test-Path -Path $filePath)) {
+                return $Null;
+            }
+            
+            # Read the file from the specific location
+            return [DevOpsKitDsc.Build.SignatureHelper]::LoadFrom($filePath);
+        }
+    }
+}
+
+function ReadBuildSignatureWeb {
+
+    [CmdletBinding()]
+    [OutputType([String])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [System.Uri]$Uri
+    )
+
+    process {
+
+        $requestParams = @{
+            Uri = $Uri
         }
 
-        return [DevOpsKitDsc.Build.SignatureHelper]::LoadFrom($filePath);
+        if ($Uri.Host -like '*.blob.core.windows.net') {
+            $requestParams['Headers'] = @{
+                'x-ms-version' = '2017-04-17'
+                'x-ms-blob-type' = 'BlockBlob'
+            }
+        }
+
+        try {
+            $response = Invoke-RestMethod @requestParams -UseBasicParsing -Method Get;
+
+            return $response;
+        }
+        catch {
+
+            if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
+                return $Null;
+            } else {
+                Write-Error -Exception $_.Exception -ErrorAction Stop;
+            }
+        }
     }
 }
 
@@ -1397,19 +1471,106 @@ function WriteBuildSignature {
         [Parameter(Mandatory = $True)]
         [String]$Path,
 
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
         [Parameter(Mandatory = $True)]
         [DevOpsKitDsc.Build.BuildSignature]$Signature
     )
 
     process {
 
-        if (!(Test-Path -Path $Path)) {
-            New-Item -Path $Path -ItemType Directory -Force | Out-Null;
+        if ($Path -like "https://*") {
+
+            # Handle writing signatures to a HTTPS endpoint
+
+            # Get the endpoint URI
+            $endpointUri = GetSignatureEndpoint -Uri $Path -SasToken $SasToken -CollectionName $signature.CollectionName -InstanceName $signature.InstanceName;
+
+            # Generate the request
+            WriteBuildSignatureWeb -Uri $endpointUri -Value $Signature.BuildIntegrity;
+
+        } elseif ($Path -like "http://") {
+
+            # Error if a HTTP endpoint is used
+            Write-Error -Message $LocalizedData.HttpNotSupported -Category InvalidOperation;
+        } else {
+
+            if (!(Test-Path -Path $Path)) {
+                New-Item -Path $Path -ItemType Directory -Force | Out-Null;
+            }
+    
+            $filePath = Join-Path -Path $Path -ChildPath "$($signature.CollectionName).$($signature.InstanceName).json";
+    
+            [DevOpsKitDsc.Build.SignatureHelper]::SaveTo($filePath, $Signature);
         }
+    }
+}
 
-        $filePath = Join-Path -Path $Path -ChildPath "$($signature.CollectionName).$($signature.InstanceName).json";
+function WriteBuildSignatureWeb {
+    
+        [CmdletBinding()]
+        [OutputType([void])]
+        param (
+            [Parameter(Mandatory = $True)]
+            [System.Uri]$Uri,
 
-        return [DevOpsKitDsc.Build.SignatureHelper]::SaveTo($filePath, $Signature);
+            [Parameter(Mandatory = $True)]
+            [String]$Value
+        )
+    
+        process {
+
+            $requestParams = @{
+                Uri = $Uri
+            }
+    
+            if ($Uri.Host -like '*.blob.core.windows.net') {
+                $requestParams['Headers'] = @{
+                    'x-ms-version' = '2017-04-17'
+                    'x-ms-blob-type' = 'BlockBlob'
+                    'x-ms-date' = [DateTime]::UtcNow.ToString('yyyy-MM-dd')
+                }
+            }
+
+            try {
+                $response = Invoke-RestMethod @requestParams -UseBasicParsing -Method Put -Body $Value;
+            }
+            catch {
+    
+                if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
+                    return $Null;
+                } else {
+                    Write-Error -Exception $_.Exception -ErrorAction Stop;
+                }
+            }
+        }
+    }
+
+function GetSignatureEndpoint {
+
+    [CmdletBinding()]
+    [OutputType([System.Uri])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$Uri,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
+        [Parameter(Mandatory = $True)]
+        [String]$CollectionName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName
+    )
+
+    process {
+
+        # Generate the endpoint uri based on base uri, collection and instance parameters
+        $result = New-Object -TypeName System.Uri -ArgumentList ([String]::Concat($Uri, $CollectionName, '/', $InstanceName, '.json', $SasToken));
+
+        return $result;
     }
 }
 

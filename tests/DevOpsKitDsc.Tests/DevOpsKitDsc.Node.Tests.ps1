@@ -440,6 +440,68 @@ Describe 'Node module' {
             Test-Path -Path $nodeMofPath2 -PathType Leaf | Should be $False;
         }
     }
+
+    Context 'Build incremental with HTTPS' {
+
+        # Init the workspace
+        $contextPath = Join-Path -Path $outputPath -ChildPath 'BuildNodeIncrementalHTTPS';
+        Initialize-DOKDsc -Path $contextPath -Force;
+
+        $srcPath = Join-Path -Path $contextPath -ChildPath 'src\Test';
+        New-Item -Path $srcPath -ItemType Directory -Force | Out-Null;
+        $incPath = Join-Path -Path $contextPath -ChildPath 'inc';
+        New-Item -Path $incPath -ItemType Directory -Force | Out-Null;
+
+        $collectionParams = @{
+            WorkspacePath = $contextPath
+            Name = 'Test'
+            Nodes = @('Test')
+            Path = '.\src\Test\SampleConfiguration.ps1'
+            Options = @{
+                SignaturePath = 'https://localhost/'
+                SignatureSasToken = '?token=test'
+            }
+        }
+
+        Copy-Item -Path "$here\SampleConfiguration.ps1" -Destination "$srcPath\" -Force;
+
+        New-DOKDscCollection @collectionParams;
+
+        Mock -CommandName 'ImportNodeData' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
+            $result = New-Object -TypeName PSObject -Property @{
+                InstanceName = 'Test';
+                BaseDirectory = "$($Global:TestVars['Here'])\nodes\Test";
+                ConfigurationData = @{
+                    AllNodes = @(
+                        @{
+                            NodeName = 'Test'
+                        }
+                    )
+                }
+            }
+
+            return $result;
+        }
+
+        Mock -CommandName 'ReadBuildSignatureWeb' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
+
+        }
+
+        Mock -CommandName 'WriteBuildSignatureWeb' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
+            
+        }
+
+        # Build all collection in the default output path
+        Invoke-DOKDscBuild -WorkspacePath $contextPath;
+
+        It 'Read is called' {
+            Assert-MockCalled -CommandName 'ReadBuildSignatureWeb' -ModuleName 'DevOpsKitDsc' -Times 1;
+        }
+
+        It 'Write is called' {
+            Assert-MockCalled -CommandName 'WriteBuildSignatureWeb' -ModuleName 'DevOpsKitDsc' -Times 1;
+        }
+    }
 }
 
 # EOF

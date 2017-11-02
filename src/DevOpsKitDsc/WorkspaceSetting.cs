@@ -71,6 +71,10 @@ namespace DevOpsKitDsc.Workspace
                 result.SignaturePath = (string)value["SignaturePath"];
             }
 
+            if (value.ContainsKey("SignatureSasToken")) {
+                result.SignatureSasToken = (string)value["SignatureSasToken"];
+            }
+
             return result;
         }
     }

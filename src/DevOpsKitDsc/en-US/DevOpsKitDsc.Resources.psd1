@@ -13,5 +13,6 @@ ModuleDoesNotExist=Module does not exist.
 CreatingFromTemplate=Creating configuration script from template
 ConfigurationAlreadyExists=Configuration already exists
 WritingWorkspaceSettings=Writting workspace settings
+HttpNotSupported=HTTP endpoints can not be used. Please specify an endpoint configured for TLS.
 ###PSLOC
 '@
