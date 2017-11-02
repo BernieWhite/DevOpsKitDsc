@@ -769,6 +769,186 @@ function Get-DOKDscWorkspaceOption {
     }
 }
 
+function Set-DOKDscCollectionOption {
+
+    [CmdletBinding(SupportsShouldProcess = $True)]
+    [OutputType([void])]
+    param (
+        [Parameter(Mandatory = $False)]
+        [String]$WorkspacePath = $PWD,
+
+        [Parameter(Mandatory = $True)]
+        [String]$Name,
+
+        [Parameter(Mandatory = $False)]
+        [Nullable[DevOpsKitDsc.Workspace.ConfigurationOptionTarget]]$Target,
+
+        [Parameter(Mandatory = $False)]
+        [System.Nullable[System.Boolean]]$ReplaceNodeData,
+
+        [Parameter(Mandatory = $False)]
+        [System.Nullable[DevOpsKitDsc.Workspace.CollectionBuildMode]]$BuildMode,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SignaturePath,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SignatureSasToken
+    )
+
+    process {
+
+        # Load current workspace settings
+        $setting = ReadWorkspaceSetting -WorkspacePath $WorkspacePath -Verbose:$VerbosePreference;
+        
+        $collection = GetCollection -Setting $setting -Name $Name -Verbose:$VerbosePreference;
+
+        if ($Null -eq $collection) {
+            Write-Error -Message "Failed for find collection" -ErrorAction Stop;
+        }
+
+        # Track if options have been changed
+        $optionsChanged = $False;
+
+        # Check for Target parameter
+        if ($PSBoundParameters.ContainsKey('Target')) {
+
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $Target -ne $collection.Options.Target) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            Target = $Target;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.Target = $Target;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for ReplaceNodeData parameter
+        if ($PSBoundParameters.ContainsKey('ReplaceNodeData')) {
+            
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $ReplaceNodeData -ne $collection.Options.ReplaceNodeData) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            ReplaceNodeData = $ReplaceNodeData;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.ReplaceNodeData = $ReplaceNodeData;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for BuildMode parameter
+        if ($PSBoundParameters.ContainsKey('BuildMode')) {
+        
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $BuildMode -ne $collection.Options.BuildMode) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+                        
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            BuildMode = $BuildMode;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.BuildMode = $BuildMode;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for SignaturePath parameter
+        if ($PSBoundParameters.ContainsKey('SignaturePath')) {
+        
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $SignaturePath -ne $collection.Options.SignaturePath) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.SignaturePath) {
+                        
+                        $collection.SignaturePath = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            SignaturePath = $SignaturePath;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.SignaturePath = $SignaturePath;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for SignatureSasToken parameter
+        if ($PSBoundParameters.ContainsKey('SignatureSasToken')) {
+            
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $SignatureSasToken -ne $collection.Options.SignatureSasToken) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.SignatureSasToken) {
+                        
+                        $collection.SignatureSasToken = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            SignatureSasToken = $SignatureSasToken;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.SignatureSasToken = $SignatureSasToken;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Save workspace settings if any changes were made
+        if ($optionsChanged) {
+
+            # Save workspace settings
+            WriteWorkspaceSetting -InputObject $setting -WorkspacePath $WorkspacePath -Verbose:$VerbosePreference;
+        }
+    }
+}
+
 function Add-DOKDscModule {
 
     [CmdletBinding(DefaultParameterSetName = 'Module')]
@@ -2503,6 +2683,7 @@ Export-ModuleMember -Function @(
     'Publish-DOKDscCollection'
     'New-DOKDscCollection'
     'Get-DOKDscCollection'
+    'Set-DOKDscCollectionOption'
     'Import-DOKDscWorkspaceSetting'
     'Set-DOKDscWorkspaceOption'
     'Get-DOKDscWorkspaceOption'
