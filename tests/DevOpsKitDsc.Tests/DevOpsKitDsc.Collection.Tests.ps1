@@ -72,6 +72,88 @@ Describe 'Workspace collection' {
             Test-Path -Path "$contextPath\build\Test\SampleConfiguration.ps1" | Should be $True;
         }
     }
+
+    Context 'Set collection options' {
+
+        # Init the workspace
+        $contextPath = Join-Path -Path $outputPath -ChildPath 'SetCollectionOptions';
+        Initialize-DOKDsc -Path $contextPath -Force;
+
+        New-DOKDscCollection -WorkspacePath $contextPath -Name 'Test';
+
+        $optionParams = @{
+            Target = 1
+            ReplaceNodeData = $True
+            BuildMode = 2
+            SignaturePath = 'https://localhost/'
+            SignatureSasToken = '?token=null'
+        }
+
+        It 'Cmdlet executes successfully' {
+            { Set-DOKDscCollectionOption -WorkspacePath $contextPath -Name 'Test' @optionParams; } | Should not throw;
+        }
+
+        $collection = Get-DOKDscCollection -WorkspacePath $contextPath -Name 'Test';
+
+        It 'Target is set' {
+            $collection.Options.Target | Should be $optionParams.Target;
+        }
+
+        It 'Replace node data is set' {
+            $collection.Options.ReplaceNodeData | Should be $optionParams.ReplaceNodeData;
+        }
+
+        It 'Build mode is set' {
+            $collection.Options.BuildMode | Should be $optionParams.BuildMode;
+        }
+
+        It 'Signature path is set' {
+            $collection.Options.SignaturePath | Should be $optionParams.SignaturePath;
+        }
+
+        It 'SAS token is set' {
+            $collection.Options.SignatureSasToken | Should be $optionParams.SignatureSasToken;
+        }
+    }
+
+    Context 'Set collection options with defaults' {
+
+        # Init the workspace
+        $contextPath = Join-Path -Path $outputPath -ChildPath 'SetCollectionOptionsWithDefaults';
+        Initialize-DOKDsc -Path $contextPath -Force;
+
+        New-DOKDscCollection -WorkspacePath $contextPath -Name 'Test';
+
+        $optionParams = @{
+
+        }
+
+        It 'Cmdlet executes successfully' {
+            { Set-DOKDscCollectionOption -WorkspacePath $contextPath -Name 'Test' @optionParams; } | Should not throw;
+        }
+
+        $collection = Get-DOKDscCollection -WorkspacePath $contextPath -Name 'Test';
+
+        It 'Target is set' {
+            $collection.Options.Target | Should be $optionParams.Target;
+        }
+
+        It 'Replace node data is set' {
+            $collection.Options.ReplaceNodeData | Should be $optionParams.ReplaceNodeData;
+        }
+
+        It 'Build mode is set' {
+            $collection.Options.BuildMode | Should be $optionParams.BuildMode;
+        }
+
+        It 'Signature path is set' {
+            $collection.Options.SignaturePath | Should be $optionParams.SignaturePath;
+        }
+
+        It 'SAS token is set' {
+            $collection.Options.SignatureSasToken | Should be $optionParams.SignatureSasToken;
+        }
+    }
 }
 
 # EOF

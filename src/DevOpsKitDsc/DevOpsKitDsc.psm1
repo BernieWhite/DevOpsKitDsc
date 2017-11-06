@@ -897,9 +897,9 @@ function Set-DOKDscCollectionOption {
                 # Process WhatIf
                 if ($PSCmdlet.ShouldProcess('', '')) {
 
-                    if ($Null -eq $collection.SignaturePath) {
+                    if ($Null -eq $collection.Options) {
                         
-                        $collection.SignaturePath = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
                             SignaturePath = $SignaturePath;
                         }
                     } else {
@@ -923,9 +923,9 @@ function Set-DOKDscCollectionOption {
                 # Process WhatIf
                 if ($PSCmdlet.ShouldProcess('', '')) {
 
-                    if ($Null -eq $collection.SignatureSasToken) {
+                    if ($Null -eq $collection.Options) {
                         
-                        $collection.SignatureSasToken = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
                             SignatureSasToken = $SignatureSasToken;
                         }
                     } else {
