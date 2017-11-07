@@ -2,6 +2,12 @@
 
 The following sections decribe DOKD features that enhance use of PowerShell Desired State Configuration (DSC).
 
+## Collections
+
+### Group configuration and nodes
+
+DOKD uses collections, which is a pairing of a configuration script and one or more node configurations. Because collection are paired in advance, you can call them repatably by name.
+
 ## Build
 
 ### Incremental build
