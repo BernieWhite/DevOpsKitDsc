@@ -3,11 +3,11 @@
 #
 
 # Import helper classes
-if (!$PSVersionTable.PSEdition -or $PSVersionTable.PSEdition -eq "Desktop") {
-    Import-Module -Name "$PSScriptRoot/bin/Debug/net451/publish/DevOpsKitDsc.dll" | Out-Null
+if (!$PSVersionTable.PSEdition -or $PSVersionTable.PSEdition -eq 'Desktop') {
+    Add-Type -Path (Join-Path -Path $PSScriptRoot -ChildPath "/bin/Debug/net451/publish/DevOpsKitDsc.dll") | Out-Null;
 }
 else {
-    Import-Module -Name "$PSScriptRoot/bin/Debug/netstandard1.6/publish/DevOpsKitDsc.dll" | Out-Null
+    Add-Type -Path (Join-Path -Path $PSScriptRoot -ChildPath "/bin/Debug/netstandard1.6/publish/DevOpsKitDsc.dll") | Out-Null;
 }
 
 #
@@ -58,7 +58,7 @@ function Register-DOKDscNode {
         CreatePath -Path $nodePath;
 
         # Import node data
-        $nodeData = ImportNodeData -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
+        $nodeData = ImportNodeData -WorkspacePath $WorkspacePath -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
 
         if ($Null -eq $nodeData -or $nodeData.Length -eq 0) {
             Write-Error -Message $LocalizedData.ErrorMissingNodeData -Category ObjectNotFound -TargetObject $nodePath -ErrorAction Stop;
@@ -110,7 +110,7 @@ function Import-DOKDscNodeConfiguration {
         $nodePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $setting.Options.NodePath -Verbose:$VerbosePreference;
 
         # Import node data
-        $nodeData = ImportNodeData -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
+        $nodeData = ImportNodeData -WorkspacePath $WorkspacePath -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
 
         if ($Null -eq $nodeData -or $nodeData.Length -eq 0) {
             Write-Error -Message ($LocalizedData.ErrorMissingNodeData -f $WorkspacePath) -Category ObjectNotFound -ErrorAction Stop;
@@ -180,7 +180,10 @@ function New-DOKDscCollection {
         [String]$Path,
 
         [Parameter(Mandatory = $False)]
-        [DevOpsKitDsc.Workspace.CollectionOption]$Options
+        [DevOpsKitDsc.Workspace.CollectionOption]$Options,
+
+        [Parameter(Mandatory = $False)]
+        [String[]]$Nodes
     )
 
     process {
@@ -222,6 +225,11 @@ function New-DOKDscCollection {
         if ($PSBoundParameters.ContainsKey('Options')) {
             $c.Options = $Options;
         }
+
+        if ($PSBoundParameters.ContainsKey('Nodes')) {
+            $c.Nodes = New-Object -TypeName 'System.Collections.Generic.List[String]';
+            $c.Nodes.AddRange($Nodes);
+        }
         
         $setting.Collections.Add($c);
 
@@ -242,7 +250,6 @@ function Publish-DOKDscCollection {
         [String[]]$Name,
 
         [Parameter(Mandatory = $False)]
-        [Alias('paths')]
         [String]$WorkspacePath = $PWD
     )
 
@@ -257,21 +264,21 @@ function Publish-DOKDscCollection {
         # Get workspace settings
         $setting = Import-DOKDscWorkspaceSetting -WorkspacePath $WorkspacePath -Verbose:$VerbosePreference;
 
-        Write-Verbose -Message "[DOKDsc][$dokOperation] -- Using Collection: $Name";
+        Write-Verbose -Message "[DOKDsc][$dokOperation] -- Using collection: $Name";
 
         # Filter collections by name as required
-        $collections = $setting.Collections | Where-Object -FilterScript {
-            !$PSBoundParameters.ContainsKey('Name') -or
-            ($Name -contains $_.Name)
-        };
+        $collections = GetCollection -Setting $setting -Name $Name -Verbose:$VerbosePreference;
 
         # Process each matching collection
         foreach ($collection in $collections) {
 
-            $outputPath = $setting.Options.OutputPath;
+            Write-Verbose -Message "[DOKDsc][$dokOperation] -- Processing collection: $Name";
+
+            $outputPath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $setting.Options.OutputPath -Verbose:$VerbosePreference;
             
             $publishParams = @{
                 OutputPath = $outputPath;
+                Path = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Path -Verbose:$VerbosePreference;
                 Name = $collection.Name;
             };
 
@@ -303,10 +310,11 @@ function Invoke-DOKDscBuild {
         [Object]$ConfigurationData,
 
         [Parameter(Mandatory = $False)]
-        [System.Collections.IDictionary]$Parameters
+        [System.Collections.IDictionary]$Parameters,
 
-        # [Parameter(Mandatory = $False)]
-        # [Switch]$Wait = $False
+        # Force build to occur even if configuration is not stale
+        [Parameter(Mandatory = $False)]
+        [Switch]$Force = $False
     )
 
     begin {
@@ -349,15 +357,17 @@ function Invoke-DOKDscBuild {
             # Ensure that the output path exists
             $outputPath = CreatePath -Path $outputPath -PassThru -Verbose:$VerbosePreference;
 
-            $sourcePath = (Get-Item -Path $collection.Path).FullName;
+            $sourcePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Path;
 
             $nodePath = $collection.Nodes;
 
             if ($Null -ne $nodePath) {
+
                 # Import node data
-                $nodeData = ImportNodeData -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
+                $nodeData = ImportNodeData -WorkspacePath $WorkspacePath -NodePath $nodePath -InstanceName $InstanceName -Verbose:$VerbosePreference;
                 
                 foreach ($node in $nodeData) {
+
                     Write-Verbose -Message "[DOKDsc][$dokOperation] -- Processing node: $($node.InstanceName)";
                     
                     try {
@@ -365,38 +375,58 @@ function Invoke-DOKDscBuild {
                         MergeNodeCertificate -InputObject $node -Path $node.BaseDirectory -InstanceName $node.InstanceName -Verbose:$VerbosePreference;
     
                         MergeConfiguration -InputObject $node -Collection $collection -Verbose:$VerbosePreference;
-    
-                        # Create job parameters
-                        $jobParams = New-Object -TypeName PSObject -Property @{
-                            ConfigurationName = $configuration.Name;
-                            ConfigurationData = $node.ConfigurationData;
-                            Parameters = $Parameters;
-                            Path = $sourcePath;
-                            OutputPath = $outputPath;
-                            ModulePath = [String[]]$setting.Options.ModulePath;
-                            AddModulesToSearchPath = $setting.Options.AddModulesToSearchPath;
-                        }
-    
-                        # Start the job
-                        # $job = Start-Job -ScriptBlock ${function:BuildConfiguration} -InputObject $jobParams;
-    
-                        BuildConfiguration -InputObject $jobParams -Verbose:$VerbosePreference;
 
-                        # Build documentation
-                        BuildDocumentation -Collection $collection -Path $outputPath -OutputPath $outputPath -Verbose:$VerbosePreference;
+                        $signatureParams = @{
+                            InstanceName = $node.InstanceName
+                            WorkspacePath = $WorkspacePath
+                            Collection = $collection
+                            Node = $node.ConfigurationData
+                        }
+
+                        # Create a build signature
+                        $signature = NewBuildSignature @signatureParams -Verbose:$VerbosePreference;
+                        
+                        # Get the default signature path
+                        $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path '.dokd-obj';
+                        
+                        # Use an alternative path for storing signatures
+                        if (![String]::IsNullOrEmpty($collection.Options.SignaturePath)) {
+
+                            if ($collection.Options.SignaturePath -match '^http(s){0,1}\:\/\/') {
+                                $signaturePath = $collection.Options.SignaturePath;
+                            } else {
+                                $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Options.SignaturePath;
+                            }
+                        }
+
+                        if ($Force -or ($Null -ne $collection.Options -and $collection.Options.BuildMode -eq [DevOpsKitDsc.Workspace.CollectionBuildMode]::Full) -or (ShouldBuildConfiguration -Signature $signature -SasToken $collection.Options.SignatureSasToken -Path $signaturePath -InstanceName $node.InstanceName -CollectionName $collection.Name)) {
+
+                            # Create job parameters
+                            $jobParams = New-Object -TypeName PSObject -Property @{
+                                ConfigurationName = $configuration.Name;
+                                ConfigurationData = $node.ConfigurationData;
+                                Parameters = $Parameters;
+                                Path = $sourcePath;
+                                OutputPath = $outputPath;
+                                ModulePath = [String[]]$setting.Options.ModulePath;
+                                AddModulesToSearchPath = $setting.Options.AddModulesToSearchPath;
+                            }
+                            
+                            # Save the build signature
+                            WriteBuildSignature -Path $signaturePath -SasToken $collection.Options.SignatureSasToken -Signature $signature;
+                            
+                            # Build the configuration
+                            BuildConfiguration -InputObject $jobParams -Verbose:$VerbosePreference;
+
+                            # Build documentation
+                            BuildDocumentation -WorkspacePath $WorkspacePath -Collection $collection -Path $outputPath -OutputPath $outputPath -Verbose:$VerbosePreference;
+                        }
                     } catch {
-                        Write-Error -Message "Failed to build configuration for $($node.InstanceName). $($_.Exception.Message)";
+                        Write-Error -Message "Failed to build configuration for $($node.InstanceName). $($_.Exception.Message)" -Exception $_.Exception;
                     }
                 }
             }
         }
-
-        # Wait for the job to return
-        # if ($Wait) {
-        #     $job | Receive-Job -Wait;
-        # } else {
-        #     $job;
-        # }
     }
 
     end {
@@ -739,6 +769,186 @@ function Get-DOKDscWorkspaceOption {
     }
 }
 
+function Set-DOKDscCollectionOption {
+
+    [CmdletBinding(SupportsShouldProcess = $True)]
+    [OutputType([void])]
+    param (
+        [Parameter(Mandatory = $False)]
+        [String]$WorkspacePath = $PWD,
+
+        [Parameter(Mandatory = $True)]
+        [String]$Name,
+
+        [Parameter(Mandatory = $False)]
+        [Nullable[DevOpsKitDsc.Workspace.ConfigurationOptionTarget]]$Target,
+
+        [Parameter(Mandatory = $False)]
+        [System.Nullable[System.Boolean]]$ReplaceNodeData,
+
+        [Parameter(Mandatory = $False)]
+        [System.Nullable[DevOpsKitDsc.Workspace.CollectionBuildMode]]$BuildMode,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SignaturePath,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SignatureSasToken
+    )
+
+    process {
+
+        # Load current workspace settings
+        $setting = ReadWorkspaceSetting -WorkspacePath $WorkspacePath -Verbose:$VerbosePreference;
+        
+        $collection = GetCollection -Setting $setting -Name $Name -Verbose:$VerbosePreference;
+
+        if ($Null -eq $collection) {
+            Write-Error -Message "Failed for find collection" -ErrorAction Stop;
+        }
+
+        # Track if options have been changed
+        $optionsChanged = $False;
+
+        # Check for Target parameter
+        if ($PSBoundParameters.ContainsKey('Target')) {
+
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $Target -ne $collection.Options.Target) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            Target = $Target;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.Target = $Target;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for ReplaceNodeData parameter
+        if ($PSBoundParameters.ContainsKey('ReplaceNodeData')) {
+            
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $ReplaceNodeData -ne $collection.Options.ReplaceNodeData) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            ReplaceNodeData = $ReplaceNodeData;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.ReplaceNodeData = $ReplaceNodeData;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for BuildMode parameter
+        if ($PSBoundParameters.ContainsKey('BuildMode')) {
+        
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $BuildMode -ne $collection.Options.BuildMode) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+                        
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            BuildMode = $BuildMode;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.BuildMode = $BuildMode;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for SignaturePath parameter
+        if ($PSBoundParameters.ContainsKey('SignaturePath')) {
+        
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $SignaturePath -ne $collection.Options.SignaturePath) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+                        
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            SignaturePath = $SignaturePath;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.SignaturePath = $SignaturePath;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Check for SignatureSasToken parameter
+        if ($PSBoundParameters.ContainsKey('SignatureSasToken')) {
+            
+            # Continue if the parameter is different to the current value
+            if ($Null -eq $collection.Options -or $SignatureSasToken -ne $collection.Options.SignatureSasToken) {
+
+                # Process WhatIf
+                if ($PSCmdlet.ShouldProcess('', '')) {
+
+                    if ($Null -eq $collection.Options) {
+                        
+                        $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption -Property @{
+                            SignatureSasToken = $SignatureSasToken;
+                        }
+                    } else {
+
+                        # Update the setting
+                        $collection.Options.SignatureSasToken = $SignatureSasToken;
+                    }
+
+                    # Mark options as changed
+                    $optionsChanged = $True;
+                }
+            }
+        }
+
+        # Save workspace settings if any changes were made
+        if ($optionsChanged) {
+
+            # Save workspace settings
+            WriteWorkspaceSetting -InputObject $setting -WorkspacePath $WorkspacePath -Verbose:$VerbosePreference;
+        }
+    }
+}
+
 function Add-DOKDscModule {
 
     [CmdletBinding(DefaultParameterSetName = 'Module')]
@@ -868,18 +1078,27 @@ function RegisterNode {
     )
 
     process {
-        $sessionParams = @{
-            ComputerName = $Node.InstanceName
-        };
-
-        if ($Node.InstanceName -eq 'localhost' -or $Node.InstanceName -eq $Env:COMPUTERNAME) {
-            $sessionParams['EnableNetworkAccess'] = $True;
-        }
-
-        $session = New-PSSession @sessionParams;
 
         # Setup the encryption certificate
-        TryDscEncryptionCertificate -Session $session -Path $OutputPath -Verbose:$VerbosePreference | Out-Null;
+        TryDscEncryptionCertificate -InstanceName $Node.InstanceName -Path $OutputPath -Verbose:$VerbosePreference | Out-Null;
+    }
+}
+
+function GetNodeSessionConfiguration {
+
+    [CmdletBinding()]
+    [OutputType([Hashtable])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName
+    )
+
+    process {
+
+        return @{
+            UseSession = $True;
+            CreateCertificate = $True;
+        };
     }
 }
 
@@ -891,7 +1110,7 @@ function TryDscEncryptionCertificate {
     param (
         # A remoting session to connect to
         [Parameter(Mandatory = $True)]
-        [System.Management.Automation.Runspaces.PSSession]$Session,
+        [String]$InstanceName,
 
         # The path to save the encryption public key to
         [Parameter(Mandatory = $True)]
@@ -900,14 +1119,31 @@ function TryDscEncryptionCertificate {
 
     process {
 
+        $sessionConfig = GetNodeSessionConfiguration -InstanceName $InstanceName;
+
+        $commandParams = @{ };
+
+        if ($sessionConfig.UseSession) {
+
+            $sessionParams = @{
+                ComputerName = $InstanceName
+            };
+    
+            if ($InstanceName -eq 'localhost' -or $InstanceName -eq $Env:COMPUTERNAME) {
+                $sessionParams['EnableNetworkAccess'] = $True;
+            }
+
+            $commandParams = @{ Session = (New-PSSession @sessionParams); };
+        }
+
         # Try to get the encryption certificate
-        $certificate = Invoke-Command -Session $Session -ScriptBlock ${function:GetCertificate};
+        $certificate = Invoke-Command @commandParams -ScriptBlock ${function:GetCertificate} -ArgumentList $sessionConfig;
 
         # Create a new encryption certificate as required
-        if ($Null -eq $certificate) {
-            $certificate = Invoke-Command -Session $Session -ScriptBlock ${function:NewCertificate};
+        if ($Null -eq $certificate -and $sessionConfig.CreateCertificate) {
+            $certificate = Invoke-Command @commandParams -ScriptBlock ${function:NewCertificate} -ArgumentList $sessionConfig;
         } else {
-            Write-Verbose -Message ($LocalizedData.HasEncryptionCertificate -f $Session.ComputerName, $certificate.Thumbprint);
+            Write-Verbose -Message ($LocalizedData.HasEncryptionCertificate -f $InstanceName, $certificate.Thumbprint);
         }
 
         if ($Null -eq $certificate) {
@@ -917,7 +1153,7 @@ function TryDscEncryptionCertificate {
         # Strongly type the result
         $result = New-Object -TypeName Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList @(,$certificate.GetRawCertData());
 
-        $result | Export-Certificate -FilePath "$Path\$($Session.ComputerName).cer" -Force;
+        $result | Export-Certificate -FilePath "$Path\$InstanceName.cer" -Force;
 
         # Return the certificate
         return $result;
@@ -928,7 +1164,8 @@ function GetCertificate {
 
     [CmdletBinding()]
     param (
-        
+        [Parameter(Position = 0)]
+        [Hashtable]$Options
     )
 
     process {
@@ -943,10 +1180,14 @@ function NewCertificate {
 
     [CmdletBinding()]
     param (
-        
+        [Parameter(Position = 0)]
+        [Hashtable]$Options
     )
 
     process {
+
+        # This function is not cross platform and needs to be updated to work with Core PowerShell.
+
         # Subject processing
 
         [String]$Subject = "CN=$Env:COMPUTERNAME";
@@ -984,13 +1225,14 @@ function NewCertificate {
         [String]$FriendlyName = 'DSC Credential Encryption';
         $Description = 'This is an encryption certificate for DSC.';
 
-        [datetime]$NotBefore = [DateTime]::Now.AddDays(-1);
-		[datetime]$NotAfter = $NotBefore.AddDays(365);
+        [DateTime]$NotBefore = [DateTime]::Now.AddDays(-1);
+		[DateTime]$NotAfter = $NotBefore.AddDays(365);
         
         $OIDs = New-Object -ComObject X509Enrollment.CObjectIDs;
 
         $OID = New-Object -ComObject X509Enrollment.CObjectID;
         $OID.InitializeFromValue($EnhancedKeyUsage.Value);
+
         # http://msdn.microsoft.com/en-us/library/aa376785(VS.85).aspx
         $OIDs.Add($OID);
 		
@@ -1030,15 +1272,17 @@ function NewCertificate {
                             try {
                                 $Bytes = ([Security.Cryptography.X509Certificates.X500DistinguishedName]$altname).RawData
                                 $Name.InitializeFromRawData($DirectoryName,$Base64,[Convert]::ToBase64String($Bytes))
-                            } catch {$Name.InitializeFromString($DNSName,$altname)}
+                            } catch {
+                                $Name.InitializeFromString($DNSName,$altname)
+                            }
                         }
                     }
                 }
+                
                 $Names.Add($Name)
             }
 
-            $SAN.InitializeEncode($Names)
-            # $ExtensionsToAdd += "SAN"
+            $SAN.InitializeEncode($Names);
 
             $certificateExtensions += $SAN;
         }
@@ -1082,39 +1326,53 @@ function NewCertificate {
             $csr.X509Extensions.Add($item);
         };
 
-        # if (![string]::IsNullOrEmpty($SerialNumber)) {
-        #     if ($SerialNumber -match "[^0-9a-fA-F]") {throw "Invalid serial number specified."}
-        #     if ($SerialNumber.Length % 2) {$SerialNumber = "0" + $SerialNumber}
-        #     $Bytes = $SerialNumber -split "(.{2})" | Where-Object {$_} | ForEach-Object{[Convert]::ToByte($_,16)}
-        #     $ByteString = [Convert]::ToBase64String($Bytes)
-        #     $Cert.SerialNumber.InvokeSet($ByteString,1)
-        # }
-
         $csr.SignatureInformation.HashAlgorithm = $signatureOid;
 
         # Completing certificate request template building
         $csr.Encode();
-        
-        # interface: http://msdn.microsoft.com/en-us/library/aa377809(VS.85).aspx
-        $certificateEnrollment = New-Object -ComObject X509Enrollment.CX509enrollment;
-        $certificateEnrollment.InitializeFromRequest($csr);
-        $certificateEnrollment.CertificateFriendlyName = $FriendlyName;
-        $certificateEnrollment.CertificateDescription = $Description;
+
+        # Enroll the certificate from the provided CSR
+        return EnrollCertificate -CSR $csr -FriendlyName $FriendlyName -Description $Description;
+    }
+}
+
+function EnrollCertificate {
+
+    [CmdletBinding()]
+    [OutputType([Security.Cryptography.X509Certificates.X509Certificate2])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [Object]$CSR,
+
+        [Parameter(Mandatory = $True)]
+        [String]$FriendlyName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$Description
+    )
+
+    process {
+
+        # Interface: http://msdn.microsoft.com/en-us/library/aa377809(VS.85).aspx
+        $enrollment = New-Object -ComObject X509Enrollment.CX509enrollment;
+        $enrollment.InitializeFromRequest($CSR);
+        $enrollment.CertificateFriendlyName = $FriendlyName;
+        $enrollment.CertificateDescription = $Description;
 
         # Create the request with base64 encoding
-        $endCert = $certificateEnrollment.CreateRequest(0x1);
-
+        $endCert = $enrollment.CreateRequest(0x1);
+            
         # Install the certificate response
-        $certificateEnrollment.InstallResponse(
+        $enrollment.InstallResponse(
             0x2, # Allow untrusted, this self-signed certificate will not chain to a trust root
             $endCert,
             0x1, # Use base64 encoding
             ''
         );
 
-        [Byte[]]$CertBytes = [Convert]::FromBase64String($endCert);
+        [Byte[]]$certBytes = [System.Convert]::FromBase64String($endCert);
 
-        New-Object Security.Cryptography.X509Certificates.X509Certificate2 @(,$CertBytes);
+        return New-Object -TypeName Security.Cryptography.X509Certificates.X509Certificate2 @(,$certBytes);
     }
 }
 
@@ -1199,8 +1457,10 @@ function BuildConfiguration {
                 $configParams += $Parameters;
             }
 
+            # Dot source the configuration script
             . "$configurationScript";
 
+            # Execute the configuration script
             $buildResult = & $ConfigurationName @configParams;
 
             if ($Null -ne $buildResult -and $buildResult -is [System.IO.FileInfo]) {
@@ -1221,11 +1481,287 @@ function BuildConfiguration {
     }
 }
 
+# Checks if build should continue if existing configuration is stale
+function ShouldBuildConfiguration {
+
+    [CmdletBinding()]
+    [OutputType([System.Boolean])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Build.BuildSignature]$Signature,
+
+        [Parameter(Mandatory = $True)]
+        [String]$Path,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$CollectionName
+    )
+
+    process {
+
+        $previousSignature = ReadBuildSignature -InstanceName $InstanceName -CollectionName $CollectionName -Path $Path -SasToken $SasToken -Verbose:$VerbosePreference;
+
+        # Check if the build integrity matches the previous build
+        if ($Null -ne $previousSignature -and $Signature.buildIntegrity -eq $previousSignature.buildIntegrity) {
+
+            return $False;
+        }
+
+        # Build is stale, build should occur
+        return $True;
+    }
+}
+
+function NewBuildSignature {
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$WorkspacePath,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName,
+
+        [Parameter(Mandatory = $True)]
+        [Hashtable]$Node,
+
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Workspace.Collection]$Collection
+    )
+
+    process {
+        
+        $signature = New-Object -TypeName DevOpsKitDsc.Build.BuildSignature;
+
+        $signature.InstanceName = $InstanceName;
+        $signature.CollectionName = $Collection.Name;
+
+        # Add configuration script
+        $signature.Path = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $Collection.Path;
+
+        # Add node data
+        $signature.Node = $node;
+
+        # Calculate build integrity
+        $signature.Update();
+
+        return $signature;
+    }
+}
+
+function ReadBuildSignature {
+
+    [CmdletBinding()]
+    [OutputType([DevOpsKitDsc.Build.BuildSignature])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$Path,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$CollectionName
+    )
+
+    process {
+
+        if ($Path -like "https://*") {
+
+            # Handle reading signatures from HTTPS endpoint
+            
+            # Get the endpoint URI
+            $endpointUri = GetSignatureEndpoint -Uri $Path -SasToken $SasToken -CollectionName $signature.CollectionName -InstanceName $signature.InstanceName;
+
+            # Generate the request
+            return ReadBuildSignatureWeb -Uri $endpointUri -Verbose:$VerbosePreference;
+
+        } elseif ($Path -like "http://") {
+
+            # Error if a HTTP endpoint is used
+            Write-Error -Message $LocalizedData.HttpNotSupported -Category InvalidOperation;
+        } else {
+
+            # Get the file path
+            $filePath = Join-Path -Path $Path -ChildPath "$CollectionName.$InstanceName.json";
+            
+            # Check if the file exists
+            if (!(Test-Path -Path $filePath)) {
+                return $Null;
+            }
+            
+            # Read the file from the specific location
+            return [DevOpsKitDsc.Build.SignatureHelper]::LoadFrom($filePath);
+        }
+    }
+}
+
+function ReadBuildSignatureWeb {
+
+    [CmdletBinding()]
+    [OutputType([String])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [System.Uri]$Uri
+    )
+
+    process {
+
+        $requestParams = @{
+            Uri = $Uri
+        }
+
+        if ($Uri.Host -like '*.blob.core.windows.net') {
+            $requestParams['Headers'] = @{
+                'x-ms-version' = '2017-04-17'
+                'x-ms-blob-type' = 'BlockBlob'
+            }
+        }
+
+        try {
+            $response = Invoke-RestMethod @requestParams -UseBasicParsing -Method Get;
+
+            return $response;
+        }
+        catch {
+
+            if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
+                return $Null;
+            } else {
+                Write-Error -Exception $_.Exception -ErrorAction Stop;
+            }
+        }
+    }
+}
+
+function WriteBuildSignature {
+
+    [CmdletBinding()]
+    [OutputType([void])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$Path,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Build.BuildSignature]$Signature
+    )
+
+    process {
+
+        if ($Path -like "https://*") {
+
+            # Handle writing signatures to a HTTPS endpoint
+
+            # Get the endpoint URI
+            $endpointUri = GetSignatureEndpoint -Uri $Path -SasToken $SasToken -CollectionName $signature.CollectionName -InstanceName $signature.InstanceName;
+
+            # Generate the request
+            WriteBuildSignatureWeb -Uri $endpointUri -Value $Signature.BuildIntegrity;
+
+        } elseif ($Path -like "http://") {
+
+            # Error if a HTTP endpoint is used
+            Write-Error -Message $LocalizedData.HttpNotSupported -Category InvalidOperation;
+        } else {
+
+            if (!(Test-Path -Path $Path)) {
+                New-Item -Path $Path -ItemType Directory -Force | Out-Null;
+            }
+    
+            $filePath = Join-Path -Path $Path -ChildPath "$($signature.CollectionName).$($signature.InstanceName).json";
+    
+            [DevOpsKitDsc.Build.SignatureHelper]::SaveTo($filePath, $Signature);
+        }
+    }
+}
+
+function WriteBuildSignatureWeb {
+    
+        [CmdletBinding()]
+        [OutputType([void])]
+        param (
+            [Parameter(Mandatory = $True)]
+            [System.Uri]$Uri,
+
+            [Parameter(Mandatory = $True)]
+            [String]$Value
+        )
+    
+        process {
+
+            $requestParams = @{
+                Uri = $Uri
+            }
+    
+            if ($Uri.Host -like '*.blob.core.windows.net') {
+                $requestParams['Headers'] = @{
+                    'x-ms-version' = '2017-04-17'
+                    'x-ms-blob-type' = 'BlockBlob'
+                    'x-ms-date' = [DateTime]::UtcNow.ToString('yyyy-MM-dd')
+                }
+            }
+
+            try {
+                $response = Invoke-RestMethod @requestParams -UseBasicParsing -Method Put -Body $Value;
+            }
+            catch {
+    
+                if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
+                    return $Null;
+                } else {
+                    Write-Error -Exception $_.Exception -ErrorAction Stop;
+                }
+            }
+        }
+    }
+
+function GetSignatureEndpoint {
+
+    [CmdletBinding()]
+    [OutputType([System.Uri])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [String]$Uri,
+
+        [Parameter(Mandatory = $False)]
+        [String]$SasToken,
+
+        [Parameter(Mandatory = $True)]
+        [String]$CollectionName,
+
+        [Parameter(Mandatory = $True)]
+        [String]$InstanceName
+    )
+
+    process {
+
+        # Generate the endpoint uri based on base uri, collection and instance parameters
+        $result = New-Object -TypeName System.Uri -ArgumentList ([String]::Concat($Uri, $CollectionName, '/', $InstanceName, '.json', $SasToken));
+
+        return $result;
+    }
+}
+
 function ImportNodeData {
 
     [CmdletBinding()]
     [OutputType([PSObject[]])]
     param (
+        [Parameter(Mandatory = $True)]
+        [String]$WorkspacePath,
+
         [Parameter(Mandatory = $True)]
         [String[]]$NodePath,
 
@@ -1252,7 +1788,7 @@ function ImportNodeData {
                 # return $Null;
             }
 
-            $pathFilter = Join-Path -Path $path -ChildPath '/';
+            $pathFilter = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $path -ChildPath '/';
 
             $result = Get-ChildItem -Path $pathFilter -File | Where-Object -FilterScript {
                 ($Null -eq $InstanceName -or $InstanceName.Count -eq 0) -or $InstanceName -contains $_.BaseName
@@ -1574,7 +2110,13 @@ function PublishConfiguration {
             return;
         }
 
-        Copy-Item -LiteralPath $Path -Destination $OutputPath -Force;
+        $collectionOutput = Join-Path -Path $OutputPath -ChildPath $Name;
+
+        if (!(Test-Path -Path $collectionOutput)) {
+            New-Item -Path $collectionOutput -ItemType Directory -Force | Out-Null;
+        }
+
+        Copy-Item -LiteralPath $Path -Destination $collectionOutput -Force;
 
     }
 }
@@ -1653,6 +2195,9 @@ function BuildDocumentation {
     [OutputType([void])]
     param (
         [Parameter(Mandatory = $True)]
+        [String]$WorkspacePath,
+
+        [Parameter(Mandatory = $True)]
         [DevOpsKitDsc.Workspace.Collection]$Collection,
 
         # The path to the .mof file
@@ -1677,7 +2222,9 @@ function BuildDocumentation {
             return;
         }
 
-        Invoke-DscNodeDocument -DocumentName $Collection.Docs.Name -Script $Collection.Docs.Path -Path $Path -OutputPath $OutputPath -Verbose:$VerbosePreference;
+        $templatePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $Collection.Docs.Path;
+
+        Invoke-DscNodeDocument -DocumentName $Collection.Docs.Name -Script $templatePath -Path $Path -OutputPath $OutputPath -Verbose:$VerbosePreference;
 
         # Write-Verbose -Message "[DOKDsc][$dokOperation] -- Update TOC: $($buildResult.FullName)";
 
@@ -2089,6 +2636,7 @@ function GetDefaultConfigurationPath {
     }
 }
 
+# Get collection based on name filter.
 function GetCollection {
 
     [CmdletBinding()]
@@ -2098,13 +2646,13 @@ function GetCollection {
         [DevOpsKitDsc.Workspace.WorkspaceSetting]$Setting,
 
         [Parameter(Mandatory = $False)]
-        [String]$Name
+        [String[]]$Name
     )
 
     process {
 
         $Setting.Collections | Where-Object -FilterScript {
-            (!$PSBoundParameters.ContainsKey('Name') -or $Name -eq $_.Name)
+            (!$PSBoundParameters.ContainsKey('Name') -or $_.Name -in $Name)
         };
     }
 }
@@ -2135,6 +2683,7 @@ Export-ModuleMember -Function @(
     'Publish-DOKDscCollection'
     'New-DOKDscCollection'
     'Get-DOKDscCollection'
+    'Set-DOKDscCollectionOption'
     'Import-DOKDscWorkspaceSetting'
     'Set-DOKDscWorkspaceOption'
     'Get-DOKDscWorkspaceOption'

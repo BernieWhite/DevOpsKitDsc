@@ -41,7 +41,7 @@
         {
             "taskName": "scaffold-docs",
             "type": "shell",
-            "command": "Update-MarkdownHelp -Path .\\docs\\commands\\en-US",
+            "command": ".\\scripts\\build-docs.ps1 -Scaffold",
             "problemMatcher": []
         }
     ]

@@ -80,6 +80,19 @@
                                     "replaceNodeData": {
                                         "type": "boolean",
                                         "description": "Determined if key/values defined in the data section replace node data, if include in both. The default is not to override data specified in the .psd1."
+                                    },
+                                    "buildMode": {
+                                        "type": "integer",
+                                        "description": "A mode for build operations. 1 = Incremental, 2 = Full",
+                                        "enum": [ 1, 2 ]
+                                    },
+                                    "signaturePath": {
+                                        "type": "string",
+                                        "description": "The path to the location containing build signatures."
+                                    },
+                                    "signatureSasToken": {
+                                        "type": "string",
+                                        "description": "An optional shared access secret (SAS) token for authentication to the signature path."
                                     }
                                 }
                             },

@@ -2,6 +2,44 @@
 
 The following sections decribe DOKD features that enhance use of PowerShell Desired State Configuration (DSC).
 
+## Collections
+
+### Group configuration and nodes
+
+DOKD uses collections, which is a pairing of a configuration script and one or more node configurations. Because collection are paired in advance, you can call them repatably by name.
+
+## Build
+
+### Incremental build
+
+When using incremental build, DSC configurations are only built when they have changed. This can add up to a substantial reducion in build time, when a large number of nodes exist in a collection.
+
+The incremental build feature generates an signature based on:
+
+- Configuration script
+- Node data
+
+By default signature data is stored in `.dok-obj` within a workspace. This path should be excluded from source control.
+
+When using incremental build within a continious integration/continious deployment pipline override the default signature path to a share or web location. The default signature data locations can be changed by using the [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption] cmdlet.
+
+#### Using a Azure Blob Storage
+
+A mentioned a web location can be used to store incremental signature information. Currently only Azure Blob Storage is supported.
+
+Use the following steps to configure Azure Blob Storage as a location for incremental signatures:
+
+1. Create or use an existing storage account
+2. Create an empty blob container
+3. Create a SAS signature with the `Read` and `Write` permissions
+4. Use [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption] with the `-SignaturePath` and `-SignatureSasToken` parameters
+
+### Documentation
+
+Automatically generate per server documentation in markdown that can be shared across teams.
+
+For details on the PSDocs syntax see [PSDocs][psdocs].
+
 ## Node configuration data
 
 ### Flat configuration data
@@ -24,7 +62,7 @@ When using _configuration data_, DSC requires that the configuration of a node b
     AllNodes = @(
         @{
             NodeName = 'CTSTW01'
-
+            
             Environment = 'Test'
 
             # Add server roles here
@@ -142,5 +180,6 @@ Set-DOKDscCollectionOption -Name 'SharePoint' -Target 1;
 Add-DOKDscMoulde -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
 ```
 
+[psdocs]: https://github.com/BernieWhite/PSDocs
 [dokd-add]: commands/en-US/Add-DOKDscModule.md
 [Set-DOKDscCollectionOption]: commands/en-US/Set-DOKDscCollectionOption.md

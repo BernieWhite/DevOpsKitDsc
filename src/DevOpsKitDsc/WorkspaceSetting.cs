@@ -17,14 +17,30 @@ namespace DevOpsKitDsc.Workspace
         AzureAutomationService
     }
 
+    public enum CollectionBuildMode : byte
+    {
+        Incremental = 1,
+
+        Full = 2
+    }
+
     [JsonObject()]
     public sealed class CollectionOption
     {
-        [JsonProperty(PropertyName = "target")]
+        [JsonProperty(PropertyName = "target", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public ConfigurationOptionTarget Target;
 
-        [JsonProperty(PropertyName = "replaceNodeData")]
+        [JsonProperty(PropertyName = "replaceNodeData", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ReplaceNodeData;
+
+        [JsonProperty(PropertyName = "buildMode", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public Nullable<CollectionBuildMode> BuildMode;
+
+        [JsonProperty(PropertyName = "signaturePath", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string SignaturePath;
+
+        [JsonProperty(PropertyName = "signatureSasToken", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string SignatureSasToken;
 
         public CollectionOption()
         {
@@ -37,12 +53,26 @@ namespace DevOpsKitDsc.Workspace
         {
             var result = new CollectionOption();
 
+            // Bind hashtable options to new CollectionOption object
+
             if (value.ContainsKey("Target")) {
                 result.Target = (ConfigurationOptionTarget)value["Target"];
             }
 
             if (value.ContainsKey("ReplaceNodeData")) {
                 result.ReplaceNodeData = (bool)value["ReplaceNodeData"];
+            }
+
+            if (value.ContainsKey("BuildMode")) {
+                result.BuildMode = (CollectionBuildMode)value["BuildMode"];
+            }
+
+            if (value.ContainsKey("SignaturePath")) {
+                result.SignaturePath = (string)value["SignaturePath"];
+            }
+
+            if (value.ContainsKey("SignatureSasToken")) {
+                result.SignatureSasToken = (string)value["SignatureSasToken"];
             }
 
             return result;

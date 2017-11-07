@@ -1,27 +1,32 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/tree/master/docs/commands/en-US/Publish-DOKDscModule.md
 schema: 2.0.0
 ---
 
 # Publish-DOKDscModule
 
 ## SYNOPSIS
-{{Fill in the Synopsis}}
+
+Package workspace dependency modules for distribution to a DSC pull server.
 
 ## SYNTAX
 
-```
+```powershell
 Publish-DOKDscModule [[-WorkspacePath] <String>] [[-ModuleName] <String>] [[-ModuleVersion] <String>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-{{Fill in the Description}}
+
+Package workspace dependency modules for distribution to a DSC pull server.
 
 ## EXAMPLES
 
 ### Example 1
-```
+
+```powershell
 PS C:\> {{ Add example code here }}
 ```
 
@@ -30,6 +35,7 @@ PS C:\> {{ Add example code here }}
 ## PARAMETERS
 
 ### -ModuleName
+
 {{Fill ModuleName Description}}
 
 ```yaml
@@ -45,6 +51,7 @@ Accept wildcard characters: False
 ```
 
 ### -ModuleVersion
+
 {{Fill ModuleVersion Description}}
 
 ```yaml
@@ -75,17 +82,24 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
-
 
 ## OUTPUTS
 
 ### System.Void
 
-
 ## NOTES
 
 ## RELATED LINKS
 
+[Add-DOKDscModule](Add-DOKDscModule.md)
+
+[Get-DOKDscModule](Get-DOKDscModule.md)
+
+[Restore-DOKDscModule](Restore-DOKDscModule.md)

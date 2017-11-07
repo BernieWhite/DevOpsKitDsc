@@ -1,6 +1,7 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/tree/master/docs/commands/en-US/New-DOKDscCollection.md
 schema: 2.0.0
 ---
 
@@ -16,12 +17,14 @@ Create a collection.
 
 ```powershell
 New-DOKDscCollection [-WorkspacePath <String>] [-Name] <String> [[-Path] <String>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ### Workspace
 
 ```powershell
 New-DOKDscCollection -Workspace <WorkspaceSetting> [-Name] <String> [[-Path] <String>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -145,15 +148,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
 
-
 ## OUTPUTS
 
 ### DevOpsKitDsc.Workspace.Collection
-
 
 ## NOTES
 

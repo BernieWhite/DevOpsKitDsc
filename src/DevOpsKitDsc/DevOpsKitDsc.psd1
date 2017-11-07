@@ -76,6 +76,7 @@ FunctionsToExport = @(
     'Publish-DOKDscCollection'
     'New-DOKDscCollection'
     'Get-DOKDscCollection'
+    'Set-DOKDscCollectionOption'
     'Import-DOKDscWorkspaceSetting'
     'Set-DOKDscWorkspaceOption'
     'Get-DOKDscWorkspaceOption'

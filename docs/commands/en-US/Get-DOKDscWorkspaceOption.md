@@ -1,6 +1,7 @@
 ---
 external help file: DevOpsKitDsc-help.xml
-online version: 
+Module Name: DevOpsKitDsc
+online version: https://github.com/BernieWhite/DevOpsKitDsc/tree/master/docs/commands/en-US/Get-DOKDscWorkspaceOption.md
 schema: 2.0.0
 ---
 
@@ -13,7 +14,7 @@ Get the workspace options in the workspace.
 ## SYNTAX
 
 ```powershell
-Get-DOKDscWorkspaceOption [[-WorkspacePath] <String>]
+Get-DOKDscWorkspaceOption [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -48,15 +49,17 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### CommonParameters
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
 ## INPUTS
 
 ### None
 
-
 ## OUTPUTS
 
 ### DevOpsKitDsc.Workspace.WorkspaceOption
-
 
 ## NOTES
 
