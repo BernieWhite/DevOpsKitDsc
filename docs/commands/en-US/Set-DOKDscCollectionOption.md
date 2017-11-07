@@ -37,7 +37,7 @@ Sets the replace node data option on the Test collection.
 
 ### -BuildMode
 
-{{Fill BuildMode Description}}
+Set the default build mode as either Full or Incremental. When this option is not set, incremental will be used by default.
 
 ```yaml
 Type: CollectionBuildMode
@@ -107,7 +107,7 @@ Accept wildcard characters: False
 Sets the location to store incremental build signatures. The location can be:
 
 - A local or remote UNC directory path
-- A HTTPS location
+- A HTTPS location such as Azure Blob Storage
 
 When this options is not set the default location of .\dokd-obj will be used.
 
@@ -125,7 +125,7 @@ Accept wildcard characters: False
 
 ### -SignatureSasToken
 
-{{Fill SignatureSasToken Description}}
+Set an option shared access signature (SAS) to be used when a HTTPS signature path is used. The SAS token will be appended to the URL. The SAS token should be prefixed with ?.
 
 ```yaml
 Type: String
@@ -141,7 +141,7 @@ Accept wildcard characters: False
 
 ### -Target
 
-{{Fill Target Description}}
+Specified the target for publish operations. This option will affect how configuration and modules are packaged for publishing.
 
 ```yaml
 Type: ConfigurationOptionTarget
