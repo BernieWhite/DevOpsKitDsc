@@ -48,7 +48,7 @@ The name of the collection.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -64,7 +64,7 @@ A workspace settings to use instead of reading from disk.
 ```yaml
 Type: WorkspaceSetting
 Parameter Sets: Setting
-Aliases: 
+Aliases:
 
 Required: True
 Position: Named
@@ -80,7 +80,7 @@ The path to an existing workspace. If no value is specified the current working 
 ```yaml
 Type: String
 Parameter Sets: Path
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named

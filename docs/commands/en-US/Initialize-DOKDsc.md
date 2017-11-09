@@ -48,7 +48,7 @@ Force creation of the workspace path when the path does not already exist.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named

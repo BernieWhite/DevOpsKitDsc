@@ -81,7 +81,7 @@ The path to the module.
 ```yaml
 Type: String
 Parameter Sets: Path
-Aliases: 
+Aliases:
 
 Required: True
 Position: Named
@@ -97,7 +97,7 @@ The name of the repository to use when restoring the module.
 ```yaml
 Type: String
 Parameter Sets: Module
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -115,7 +115,7 @@ When Workspace type is used no attept will be made to download the module from a
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 Accepted values: Workspace, Repository
 
 Required: False
@@ -132,7 +132,7 @@ The path to an existing workspace. If no value is specified the current working 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named

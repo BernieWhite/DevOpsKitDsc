@@ -74,7 +74,7 @@ The name of the collection to create.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: True
 Position: 0
@@ -90,7 +90,7 @@ A path to an existing configuration script file.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 1
@@ -123,7 +123,7 @@ A workspace settings to use instead of reading from disk.
 ```yaml
 Type: WorkspaceSetting
 Parameter Sets: Workspace
-Aliases: 
+Aliases:
 
 Required: True
 Position: Named
@@ -139,7 +139,7 @@ The path to an existing workspace. If no value is specified the current working 
 ```yaml
 Type: String
 Parameter Sets: Path
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -149,6 +149,7 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS

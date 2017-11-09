@@ -41,7 +41,7 @@ PS C:\> Invoke-DOKDscBuild;
 ```yaml
 Type: Object
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 3
@@ -57,7 +57,7 @@ Accept wildcard characters: False
 ```yaml
 Type: String[]
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 1
@@ -67,12 +67,13 @@ Accept wildcard characters: False
 ```
 
 ### -Name
+
 The name of the collection to build. If a name is not specified all collections will be built.
 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 0
@@ -82,12 +83,13 @@ Accept wildcard characters: False
 ```
 
 ### -Parameters
+
 {{Fill Parameters Description}}
 
 ```yaml
 Type: IDictionary
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 4
@@ -97,6 +99,7 @@ Accept wildcard characters: False
 ```
 
 ### -WorkspacePath
+
 The path to an existing workspace. If no value is specified the current working path is used.
 
 ```yaml
@@ -112,6 +115,7 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
@@ -125,4 +129,3 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## NOTES
 
 ## RELATED LINKS
-
