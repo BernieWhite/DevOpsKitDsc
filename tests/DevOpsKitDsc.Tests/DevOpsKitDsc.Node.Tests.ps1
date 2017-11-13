@@ -1,4 +1,6 @@
 
+Set-StrictMode -Version latest;
+
 # Setup tests paths
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path;
 $src = ($here -replace '\\tests\\', '\\src\\') -replace '\.Tests', '';
