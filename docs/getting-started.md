@@ -13,9 +13,11 @@ An example of the workspace folder structure is shown below.
   - `src`
     - `SharePoint` - contains SharePoint server configuration scripts
 
-To create a workspace use the `Initialize-DOKDsc` cmdlet (`dokd-init` for short). For a list of cmdlet options see [Initialize-DOKDsc](/docs/commands/Initialize-DOKDsc.md).
+To create a workspace use the `Initialize-DOKDsc` cmdlet (`dokd-init` for short). For a list of cmdlet options see [Initialize-DOKDsc](/docs/commands/en-US/Initialize-DOKDsc.md).
 
 ### EXAMPLE 1
+
+#### PowerShell syntax
 
 Create a workspace.
 
@@ -24,6 +26,8 @@ Create a workspace.
 Initialize-DOKDsc;
 ```
 
+#### Short syntax
+
 ```powershell
 # Create a new workspace in the current working path
 dokd-init;
@@ -31,13 +35,13 @@ dokd-init;
 
 ### EXAMPLE 2
 
-Restore an existing workspace from a git repository and restore dependencies. For a list of cmdlet options see [Restore-DOKDscModule](/docs/commands/Restore-DOKDscModule.md).
+Restore an existing workspace from a git repository and restore dependencies. For a list of cmdlet options see [Restore-DOKDscModule](/docs/commands/en-US/Restore-DOKDscModule.md).
 
 ```powershell
 # Use git to clone the repository
-git clone <repository>;
+git clone https://github.com/BernieWhite/DevOpsKitDsc-samples.git;
 
-cd .\<repository>
+cd .\DevOpsKitDsc-samples
 
 # Restore dependency modules to the workspace
 dokd-restore;
