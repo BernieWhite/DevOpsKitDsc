@@ -93,6 +93,7 @@ Invoke-DOKDscBuild;
 - [New-DOKDscCollection](/docs/commands/en-US/New-DOKDscCollection.md)
 - [Publish-DOKDscCollection](/docs/commands/en-US/Public-DOKDscCollection.md)
 - [Get-DOKDscCollection](/docs/commands/en-US/Get-DOKDscCollection.md)
+- [Set-DOKDscCollectionOption](/docs/commands/en-US/Set-DOKDscCollectionOption.md)
 - [Import-DOKDscWorkspaceSetting](/docs/commands/en-US/Import-DOKDscWorkspaceSetting.md)
 - [Set-DOKDscWorkspaceOption](/docs/commands/en-US/Set-DOKDscWorkspaceOption.md)
 - [Get-DOKDscWorkspaceOption](/docs/commands/en-US/Get-DOKDscWorkspaceOption.md)

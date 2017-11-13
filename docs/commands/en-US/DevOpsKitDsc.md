@@ -10,7 +10,7 @@ Locale: en-US
 
 ## Description
 
-{{Manually Enter Description Here}}
+Automate releases of Desired State Configuration configurations.
 
 ## DevOpsKitDsc Cmdlets
 
@@ -65,6 +65,10 @@ Create a public/private key pair for configuration encryption.
 ### [Restore-DOKDscModule](Restore-DOKDscModule.md)
 
 Restore module dependencies for the specified workspace.
+
+### [Set-DOKDscCollectionOption](Set-DOKDscCollectionOption.md)
+
+Set configuration options for the collection.
 
 ### [Set-DOKDscWorkspaceOption](Set-DOKDscWorkspaceOption.md)
 
