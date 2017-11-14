@@ -40,10 +40,6 @@ The following modules are included in this repository.
 
 ## Getting started
 
-Please see getting started documentation [here][getting-started].
-
-[getting-started]: docs/getting-started.md
-
 ### Getting the module
 
 - Install from [PowerShell Gallery][psg-dokdsc]
@@ -84,6 +80,10 @@ Restore-DOKDscModule;
 Invoke-DOKDscBuild;
 ```
 
+### Detailed instructions
+
+For detailed instructions please see getting started documentation [here][getting-started].
+
 ## Commands
 
 - [Initialize-DOKDsc](/docs/commands/en-US/Initialize-DOKDsc.md)
@@ -120,3 +120,4 @@ This project is [licensed under the MIT License](LICENSE).
 
 [psg-dokdsc]: https://www.powershellgallery.com/packages/DevOpsKitDsc
 [vsm-dokd-vscode]: https://marketplace.visualstudio.com/items?itemName=bewhite.dokd-vscode-preview
+[getting-started]: docs/getting-started.md
