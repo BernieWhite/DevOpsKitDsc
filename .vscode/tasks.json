@@ -35,13 +35,19 @@
         {
             "label": "build-docs",
             "type": "shell",
-            "command": "New-ExternalHelp -OutputPath .\\build\\docs -Path .\\docs\\commands\\en-US -Force",
+            "command": ".\\scripts\\build-docs.ps1",
             "problemMatcher": []
         },
         {
             "label": "scaffold-docs",
             "type": "shell",
             "command": ".\\scripts\\build-docs.ps1 -Scaffold",
+            "problemMatcher": []
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "Remove-Item -Path .\\build -Recurse -Force",
             "problemMatcher": []
         }
     ]
