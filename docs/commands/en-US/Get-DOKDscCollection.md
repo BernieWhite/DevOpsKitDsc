@@ -15,13 +15,13 @@ Get a collection.
 
 ### Path (Default)
 
-```powershell
+```text
 Get-DOKDscCollection [-WorkspacePath <String>] [-Name <String>] [<CommonParameters>]
 ```
 
 ### Setting
 
-```powershell
+```text
 Get-DOKDscCollection -Workspace <WorkspaceSetting> [-Name <String>] [<CommonParameters>]
 ```
 

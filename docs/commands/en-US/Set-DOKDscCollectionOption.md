@@ -13,7 +13,7 @@ Set configuration options for the collection.
 
 ## SYNTAX
 
-```powershell
+```text
 Set-DOKDscCollectionOption [[-WorkspacePath] <String>] [-Name] <String> [[-Target] <ConfigurationOptionTarget>]
  [[-ReplaceNodeData] <Boolean>] [[-BuildMode] <CollectionBuildMode>] [[-SignaturePath] <String>]
  [[-SignatureSasToken] <String>] [-WhatIf] [-Confirm] [<CommonParameters>]

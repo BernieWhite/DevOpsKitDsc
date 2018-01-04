@@ -13,7 +13,7 @@ Get the workspace options in the workspace.
 
 ## SYNTAX
 
-```powershell
+```text
 Get-DOKDscWorkspaceOption [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 

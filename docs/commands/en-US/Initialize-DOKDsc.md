@@ -13,7 +13,7 @@ Create a workspace in the current working path or a specified location.
 
 ## SYNTAX
 
-```powershell
+```text
 Initialize-DOKDsc [[-WorkspacePath] <String>] [-Force] [<CommonParameters>]
 ```
 

@@ -13,7 +13,7 @@ Restore workspace module dependencies.
 
 ## SYNTAX
 
-```powershell
+```text
 Restore-DOKDscModule [[-WorkspacePath] <String>] [[-ModuleName] <String>] [[-ModuleVersion] <String>]
  [<CommonParameters>]
 ```

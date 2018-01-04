@@ -13,7 +13,7 @@ Create a public/private key pair for configuration encryption.
 
 ## SYNTAX
 
-```powershell
+```text
 Register-DOKDscNode [[-InstanceName] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 

@@ -13,7 +13,7 @@ Import configuration data for a node.
 
 ## SYNTAX
 
-```powershell
+```text
 Import-DOKDscNodeConfiguration [[-InstanceName] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 

@@ -13,7 +13,7 @@ Get a list of module dependencies in the workspace.
 
 ## SYNTAX
 
-```powershell
+```text
 Get-DOKDscModule [[-WorkspacePath] <String>] [[-ModuleName] <String>] [[-ModuleVersion] <String>]
  [<CommonParameters>]
 ```

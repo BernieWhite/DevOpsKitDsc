@@ -13,7 +13,7 @@ Set configuration options for the workspace.
 
 ## SYNTAX
 
-```powershell
+```text
 Set-DOKDscWorkspaceOption [[-WorkspacePath] <String>] [[-OutputPath] <String>] [[-NodePath] <String>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```

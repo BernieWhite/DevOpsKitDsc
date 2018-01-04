@@ -13,7 +13,7 @@ Publish the configuration of a collection.
 
 ## SYNTAX
 
-```powershell
+```text
 Publish-DOKDscCollection [[-Name] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 

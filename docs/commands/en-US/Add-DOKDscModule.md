@@ -15,14 +15,14 @@ Add a module dependency to the workspace.
 
 ### Module (Default)
 
-```powershell
+```text
 Add-DOKDscModule [-WorkspacePath <String>] -ModuleName <String> -ModuleVersion <String> [-Repository <String>]
  [-Type <String>] [<CommonParameters>]
 ```
 
 ### Path
 
-```powershell
+```text
 Add-DOKDscModule [-WorkspacePath <String>] -Path <String> [-Type <String>] [<CommonParameters>]
 ```
 
