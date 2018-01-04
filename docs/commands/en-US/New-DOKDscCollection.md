@@ -15,16 +15,16 @@ Create a collection.
 
 ### Path (Default)
 
-```powershell
-New-DOKDscCollection [-WorkspacePath <String>] [-Name] <String> [[-Path] <String>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+```text
+New-DOKDscCollection [-WorkspacePath <String>] [-Name] <String> [[-Path] <String>]
+ [-Options <CollectionOption>] [-Nodes <String[]>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Workspace
 
-```powershell
-New-DOKDscCollection -Workspace <WorkspaceSetting> [-Name] <String> [[-Path] <String>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+```text
+New-DOKDscCollection -Workspace <WorkspaceSetting> [-Name] <String> [[-Path] <String>]
+ [-Options <CollectionOption>] [-Nodes <String[]>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -78,6 +78,36 @@ Aliases:
 
 Required: True
 Position: 0
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Nodes
+{{Fill Nodes Description}}
+
+```yaml
+Type: String[]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Options
+{{Fill Options Description}}
+
+```yaml
+Type: CollectionOption
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

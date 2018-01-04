@@ -13,9 +13,9 @@ Build collections in a workspace.
 
 ## SYNTAX
 
-```powershell
+```text
 Invoke-DOKDscBuild [[-Name] <String>] [[-InstanceName] <String[]>] [[-WorkspacePath] <String>]
- [[-ConfigurationData] <Object>] [[-Parameters] <IDictionary>] [<CommonParameters>]
+ [[-ConfigurationData] <Object>] [[-Parameters] <IDictionary>] [-Force] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -45,6 +45,22 @@ Aliases:
 
 Required: False
 Position: 3
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Force
+
+The default build uses an incremental process to skip building configuration that hasn't changed. Use `-Force` to override and completely build all configurations.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

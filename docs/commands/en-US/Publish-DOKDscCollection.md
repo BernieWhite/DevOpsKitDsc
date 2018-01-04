@@ -40,7 +40,7 @@ The name of the collection to publish.
 ```yaml
 Type: String[]
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 0
@@ -56,7 +56,7 @@ The path to an existing workspace. If no value is specified the current working 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: paths
+Aliases:
 
 Required: False
 Position: 1

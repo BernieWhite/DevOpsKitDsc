@@ -30,15 +30,15 @@ A mentioned a web location can be used to store incremental signature informatio
 Use the following steps to configure Azure Blob Storage as a location for incremental signatures:
 
 1. Create or use an existing storage account
-2. Create an empty blob container
-3. Create a SAS signature with the `Read` and `Write` permissions
-4. Use [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption] with the `-SignaturePath` and `-SignatureSasToken` parameters
+1. Create an empty blob container
+1. Create a SAS signature with the `Read` and `Write` permissions
+1. Use [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption] with the `-SignaturePath` and `-SignatureSasToken` parameters
 
 ### Documentation
 
 Automatically generate per server documentation in markdown that can be shared across teams.
 
-For details on the PSDocs syntax see [PSDocs][psdocs].
+For details on the PSDocs syntax and output examples see [PSDocs][psdocs].
 
 ## Node configuration data
 
@@ -62,7 +62,7 @@ When using _configuration data_, DSC requires that the configuration of a node b
     AllNodes = @(
         @{
             NodeName = 'CTSTW01'
-            
+
             Environment = 'Test'
 
             # Add server roles here
