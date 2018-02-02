@@ -8,7 +8,7 @@
 RootModule = 'DevOpsKitDsc.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.0.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -48,6 +48,7 @@ Description = 'This module automates DSC configurations.'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
+    @{ ModuleName = 'Microsoft.PowerShell.Utility'; }
     @{ ModuleName = 'PSDocs'; ModuleVersion = '0.2.0'; }
     @{ ModuleName = 'PSDocs.Dsc'; ModuleVersion = '0.2.0'; }
 )

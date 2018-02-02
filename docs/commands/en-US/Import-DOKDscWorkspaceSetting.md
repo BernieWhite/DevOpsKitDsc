@@ -13,7 +13,7 @@ Import workspace settings.
 
 ## SYNTAX
 
-```powershell
+```text
 Import-DOKDscWorkspaceSetting [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 

@@ -16,7 +16,7 @@ param (
     [Switch]$CodeCoverage = $False
 )
 
-Write-Verbose -Message "[Test]`tBEGIN::";
+Write-Verbose -Message "[Test] BEGIN::";
 
 # Include common library
 . $PWD\scripts\common.ps1;
@@ -35,7 +35,7 @@ if ([String]::IsNullOrEmpty($ResultsPath)) {
 
 # STEP : Create output paths
 
-Write-Verbose -Message "[Test]`t-- Creating output paths";
+Write-Verbose -Message "[Test] -- Creating output paths";
 
 # Create output path
 @($reportsPath) | CreatePath -Clean:$Clean -Verbose:$VerbosePreference;
@@ -61,4 +61,4 @@ if (![String]::IsNullOrEmpty($Env:APPVEYOR_JOB_ID)) {
     SendAppveyorTestResult -Uri "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)" -Path '.\reports' -Include '*.xml';
 }
 
-Write-Verbose -Message "[Test]`tEND::";
+Write-Verbose -Message "[Test] END::";

@@ -1790,6 +1790,11 @@ function ImportNodeData {
 
             $pathFilter = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $path -ChildPath '/';
 
+            if (!(Test-Path -Path $pathFilter))
+            {
+                Write-Warning -Message "Node path $path does not exist";
+            }
+
             $result = Get-ChildItem -Path $pathFilter -File | Where-Object -FilterScript {
                 ($Null -eq $InstanceName -or $InstanceName.Count -eq 0) -or $InstanceName -contains $_.BaseName
             } | ForEach-Object -Process {

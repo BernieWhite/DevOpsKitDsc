@@ -13,7 +13,7 @@ Set configuration options for the collection.
 
 ## SYNTAX
 
-```powershell
+```text
 Set-DOKDscCollectionOption [[-WorkspacePath] <String>] [-Name] <String> [[-Target] <ConfigurationOptionTarget>]
  [[-ReplaceNodeData] <Boolean>] [[-BuildMode] <CollectionBuildMode>] [[-SignaturePath] <String>]
  [[-SignatureSasToken] <String>] [-WhatIf] [-Confirm] [<CommonParameters>]
@@ -42,7 +42,7 @@ Set the default build mode as either Full or Incremental. When this option is no
 ```yaml
 Type: CollectionBuildMode
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 Accepted values: Incremental, Full
 
 Required: False
@@ -75,7 +75,7 @@ The name of the collection to set options on.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: True
 Position: 1
@@ -93,7 +93,7 @@ When this option is not set, collection data will not replce node data. i.e. Rep
 ```yaml
 Type: Boolean
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 3
@@ -114,7 +114,7 @@ When this options is not set the default location of .\dokd-obj will be used.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 5
@@ -130,7 +130,7 @@ Set an option shared access signature (SAS) to be used when a HTTPS signature pa
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 6
@@ -146,7 +146,7 @@ Specified the target for publish operations. This option will affect how configu
 ```yaml
 Type: ConfigurationOptionTarget
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 Accepted values: FileSystem, AzureAutomationService
 
 Required: False
@@ -179,7 +179,7 @@ A workspace settings to use instead of reading from disk.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 0

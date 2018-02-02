@@ -15,16 +15,16 @@ Create a collection.
 
 ### Path (Default)
 
-```powershell
-New-DOKDscCollection [-WorkspacePath <String>] [-Name] <String> [[-Path] <String>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+```text
+New-DOKDscCollection [-WorkspacePath <String>] [-Name] <String> [[-Path] <String>]
+ [-Options <CollectionOption>] [-Nodes <String[]>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Workspace
 
-```powershell
-New-DOKDscCollection -Workspace <WorkspaceSetting> [-Name] <String> [[-Path] <String>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+```text
+New-DOKDscCollection -Workspace <WorkspaceSetting> [-Name] <String> [[-Path] <String>]
+ [-Options <CollectionOption>] [-Nodes <String[]>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -74,10 +74,40 @@ The name of the collection to create.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: True
 Position: 0
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Nodes
+{{Fill Nodes Description}}
+
+```yaml
+Type: String[]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Options
+{{Fill Options Description}}
+
+```yaml
+Type: CollectionOption
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -90,7 +120,7 @@ A path to an existing configuration script file.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 1
@@ -123,7 +153,7 @@ A workspace settings to use instead of reading from disk.
 ```yaml
 Type: WorkspaceSetting
 Parameter Sets: Workspace
-Aliases: 
+Aliases:
 
 Required: True
 Position: Named
@@ -139,7 +169,7 @@ The path to an existing workspace. If no value is specified the current working 
 ```yaml
 Type: String
 Parameter Sets: Path
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -149,6 +179,7 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS

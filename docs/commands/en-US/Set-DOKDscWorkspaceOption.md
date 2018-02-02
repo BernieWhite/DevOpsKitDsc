@@ -13,7 +13,7 @@ Set configuration options for the workspace.
 
 ## SYNTAX
 
-```powershell
+```text
 Set-DOKDscWorkspaceOption [[-WorkspacePath] <String>] [[-OutputPath] <String>] [[-NodePath] <String>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
@@ -57,7 +57,7 @@ Set the base path to look for node configuration data files. The path can be a s
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 2
@@ -75,7 +75,7 @@ Within the output path, seperate folders will be created for each collection.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 1
@@ -108,7 +108,7 @@ The path to an existing workspace. If no value is specified the current working 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 0

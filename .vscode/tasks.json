@@ -4,16 +4,17 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "build",
+            "label": "build",
             "type": "shell",
             "command": ".\\scripts\\build.ps1 -Module DevOpsKitDsc -Clean -Verbose",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
         },
         {
-            "taskName": "test",
+            "label": "test",
             "type": "shell",
             "command": ".\\scripts\\test.ps1 -Clean",
             "group": {
@@ -25,7 +26,7 @@
             ]
         },
         {
-            "taskName": "coverage",
+            "label": "coverage",
             "type": "shell",
             "command": ".\\scripts\\test.ps1 -Clean -CodeCoverage",
             "problemMatcher": [
@@ -33,15 +34,21 @@
             ]
         },
         {
-            "taskName": "build-docs",
+            "label": "build-docs",
             "type": "shell",
-            "command": "New-ExternalHelp -OutputPath .\\build\\docs -Path .\\docs\\commands\\en-US -Force",
+            "command": ".\\scripts\\build-docs.ps1",
             "problemMatcher": []
         },
         {
-            "taskName": "scaffold-docs",
+            "label": "scaffold-docs",
             "type": "shell",
             "command": ".\\scripts\\build-docs.ps1 -Scaffold",
+            "problemMatcher": []
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "Remove-Item -Path .\\build -Recurse -Force",
             "problemMatcher": []
         }
     ]

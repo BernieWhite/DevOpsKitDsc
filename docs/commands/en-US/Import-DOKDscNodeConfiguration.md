@@ -13,7 +13,7 @@ Import configuration data for a node.
 
 ## SYNTAX
 
-```powershell
+```text
 Import-DOKDscNodeConfiguration [[-InstanceName] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 
@@ -40,7 +40,7 @@ PS C:\> {{ Add example code here }}
 ```yaml
 Type: String[]
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 0

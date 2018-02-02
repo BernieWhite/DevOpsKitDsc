@@ -13,7 +13,7 @@ Publish the configuration of a collection.
 
 ## SYNTAX
 
-```powershell
+```text
 Publish-DOKDscCollection [[-Name] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
 ```
 
@@ -26,10 +26,10 @@ Publish the configuration of a collection.
 ### Example 1
 
 ```powershell
-PS C:\> {{ Add example code here }}
+PS C:\> Publish-DOKDscCollection;
 ```
 
-{{ Add example description here }}
+Publish all collections in the workspace.
 
 ## PARAMETERS
 
@@ -40,7 +40,7 @@ The name of the collection to publish.
 ```yaml
 Type: String[]
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: 0
@@ -56,7 +56,7 @@ The path to an existing workspace. If no value is specified the current working 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: paths
+Aliases:
 
 Required: False
 Position: 1
