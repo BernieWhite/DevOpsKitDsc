@@ -152,13 +152,12 @@ To set this up in a workspace:
 1. Set Target = 0 for the specific collection using the [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption]
 2. Add one or more modules to the workspace with the [Add-DOKDscModule][dokd-add] command
 
-
 ```powershell
 # Set a collection named SharePoint to package for local DSC server
 Set-DOKDscCollectionOption -Name 'SharePoint' -Target 0;
 
 # Add v1.8.0.0 of the SharePointDsc module to the workspace
-Add-DOKDscMoulde -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
+Add-DOKDscModule -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
 ```
 
 ### Packaging modules for Azure Automation Service
@@ -177,7 +176,7 @@ To set this up in a workspace:
 Set-DOKDscCollectionOption -Name 'SharePoint' -Target 1;
 
 # Add v1.8.0.0 of the SharePointDsc module to the workspace
-Add-DOKDscMoulde -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
+Add-DOKDscModule -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
 ```
 
 [psdocs]: https://github.com/BernieWhite/PSDocs

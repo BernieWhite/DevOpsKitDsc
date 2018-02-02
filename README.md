@@ -27,15 +27,15 @@ The following modules are included in this repository.
 
 ## Features
 
-- [Collections](docs/feature-details.md#Collections)
+- [Collections](docs/feature-details.md#collections)
   - Group configuration and nodes into collections that can be built together.
-- [Build](docs/feature-details.md#Build)
+- [Build](docs/feature-details.md#build)
   - Build only changed nodes with incremental build.
   - Build documentation together with DSC configurations.
-- [Node configuration data](docs/feature-details.md#Node_configuration_data)
+- [Node configuration data](docs/feature-details.md#node-configuration-data)
   - Use flat configuration data structure for a single node.
   - Use your choice of PSD1 or JSON files for storing node data.
-- [Packaging](docs/feature-details.md#Packaging)
+- [Packaging](docs/feature-details.md#packaging)
   - Package configurations and resource modules ready for a local pull server or Azure Automation Service.
 
 ## Getting started
@@ -66,6 +66,8 @@ code --install-extension bewhite.dokd-vscode-preview
 ```
 
 ### Building a cloned git repository
+
+Get a sample configuration repository and build the configurations.
 
 ```powershell
 # Use git to clone the repository
@@ -108,7 +110,7 @@ For detailed instructions please see getting started documentation [here][gettin
 | ------             | ----------- |
 | [DevOpsKitDsc-vscode](https://github.com/BernieWhite/DevOpsKitDsc-vscode) | A Visual Studio Code extension for DOKD |
 | [DevOpsKitDsc-samples](https://github.com/BernieWhite/DevOpsKitDsc-samples) | A sample DOKD repository |
-| [PSDocs](https://github.com/BernieWhite/PSDocs) | A PowerShell module to generate markdown |
+| [PSDocs](https://github.com/BernieWhite/PSDocs) | A PowerShell module to generate markdown from pipeline objects |
 
 ## Maintainers
 
