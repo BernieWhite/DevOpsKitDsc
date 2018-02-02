@@ -30,7 +30,15 @@ Build collections in a workspace.
 PS C:\> Invoke-DOKDscBuild;
 ```
 
-{{ Add example description here }}
+Build all collections in the workspace.
+
+### Example 2
+
+```powershell
+PS C:\> Invoke-DOKDscBuild -Name 'Production';
+```
+
+Build a collection named `Production`.
 
 ## PARAMETERS
 

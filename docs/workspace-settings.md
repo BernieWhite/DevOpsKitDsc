@@ -13,6 +13,17 @@ The structure of the workspace settings.json is as follows:
 | `collections` | array of collections | One or more collections defined for the workspace. See collections for further detail. |
 | `modules` | array of modules | One or more modules defined for the workspace. See modules for further detail. |
 
+For example:
+
+```json
+{
+    "version": "0.1.0",
+    "options": { },
+    "collections": [ ],
+    "modules": [ ]
+}
+```
+
 ### Workspace options
 
 Configures options that affect the workspace. Workspace options can be set using the `Set-DOKDscWorkspaceOption` cmdlet.
@@ -22,6 +33,18 @@ Configures options that affect the workspace. Workspace options can be set using
 | `modulePath` | Optional | string | The path to store dependency modules in. If this property is not defined, a default of `.\modules` will be used. |
 | `nodePath` | Optional | string | The path that contains node data. If this property is not defined, a default of `.\nodes` will be used. |
 | `outputPath` | Optional | string | A literal or relative path where output of build (.mof files) and publish processes will be stored. If this property is not defined, a default of `.\build` will be used. |
+
+For example:
+
+```json
+{
+    "options": {
+        "modulePath": ".\\modules",
+        "nodePath": ".\\nodes",
+        "outputPath": ".\\out"
+    }
+}
+```
 
 ### Collections
 
@@ -36,6 +59,24 @@ Collection definitions for the workspace. New collections can be created using t
 | `data` | Optional | object | Data properties to merge into node data.  |
 | `nodes` | Optional | array of strings | One or more path filters to include node data files with the .psd1 or .json suffix. |
 | `docs` | Optional | object | Options for configuring documentation generation during build. |
+
+For example:
+
+```json
+{
+    "collections": [
+        {
+            "name": "SharePoint",
+            "path": ".\\src\\Production\\SharePoint.ps1",
+            "configurationName": "SharePoint",
+            "options": { },
+            "data": { },
+            "nodes": [ ],
+            "docs": { }
+        }
+    ]
+}
+```
 
 ### Collection options
 

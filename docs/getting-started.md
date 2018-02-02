@@ -22,27 +22,7 @@ To create a workspace use the `Initialize-DOKDsc` cmdlet (`dokd-init` for short)
 Initialize-DOKDsc;
 ```
 
-See [Create a collection](getting-started.md#Create_a_collection) for next steps.
-
-## Restore dependencies
-
-If you already have a workspace stored in a source control system you may want to just restore dependencies to your local copy.
-
-Module dependencies are restored with the `Restore-DOKDscModule` cmdlet (`dokd-restore` for short). For a list of cmdlet options see [Restore-DOKDscModule](/docs/commands/en-US/Restore-DOKDscModule.md).
-
-```powershell
-# Use git to clone the repository
-git clone https://github.com/BernieWhite/DevOpsKitDsc-samples.git;
-
-cd .\DevOpsKitDsc-samples
-
-# Restore dependency modules to the workspace in the current path
-Restore-DOKDscModule;
-```
-
 ## Create a collection
-
-After workspace is established the next step is to create a collection.
 
 A collection allows you to associate a configuration script and the nodes that will be configured. Multiple collections can exist within a single workspace and may be used to seperate environments such as _Test_ / _Production_ or diffent workloads such as _SQL_ / _SharePoint_ depeneding on your needs.
 
@@ -69,6 +49,22 @@ Invoke-DOKDscBuild;
 ```
 
 After the collection is built, .mof files will be output in the `.\build` directory.
+
+## Restore dependencies
+
+If you already have a workspace stored in a source control system you may want to just restore dependencies to your local copy.
+
+Module dependencies are restored with the `Restore-DOKDscModule` cmdlet (`dokd-restore` for short). For a list of cmdlet options see [Restore-DOKDscModule](/docs/commands/en-US/Restore-DOKDscModule.md).
+
+```powershell
+# Use git to clone the repository
+git clone https://github.com/BernieWhite/DevOpsKitDsc-samples.git;
+
+cd .\DevOpsKitDsc-samples
+
+# Restore dependency modules to the workspace in the current path
+Restore-DOKDscModule;
+```
 
 ## Full examples
 

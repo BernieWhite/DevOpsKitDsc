@@ -26,10 +26,10 @@ Publish the configuration of a collection.
 ### Example 1
 
 ```powershell
-PS C:\> {{ Add example code here }}
+PS C:\> Publish-DOKDscCollection;
 ```
 
-{{ Add example description here }}
+Publish all collections in the workspace.
 
 ## PARAMETERS
 
