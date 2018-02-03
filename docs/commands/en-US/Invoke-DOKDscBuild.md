@@ -20,7 +20,7 @@ Invoke-DOKDscBuild [[-Name] <String>] [[-InstanceName] <String[]>] [[-WorkspaceP
 
 ## DESCRIPTION
 
-Build collections in a workspace.
+Build a specific or all collections in a workspace. During the build process modules are restored.
 
 ## EXAMPLES
 

@@ -9,3 +9,4 @@
 /reports/
 /**/*.user
 /docs/help/
+/**/*-help.xml

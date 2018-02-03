@@ -14,5 +14,5 @@ if ($Scaffold) {
 
 New-ExternalHelp -OutputPath '.\build\docs' -Path '.\docs\commands\en-US' -Force;
 
-Copy-Item -Path '.\build\docs\DevOpsKitDsc-help.xml' -Destination '.\src\en-US';
-Copy-Item -Path '.\build\docs\DevOpsKitDsc-help.xml' -Destination '.\src\en-AU';
+Copy-Item -Path '.\build\docs\DevOpsKitDsc-help.xml' -Destination '.\src\DevOpsKitDsc\en-US\DevOpsKitDsc-help.xml';
+Copy-Item -Path '.\build\docs\DevOpsKitDsc-help.xml' -Destination '.\src\DevOpsKitDsc\en-AU\DevOpsKitDsc-help.xml';

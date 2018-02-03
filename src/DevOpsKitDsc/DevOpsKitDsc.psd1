@@ -48,7 +48,7 @@ Description = 'This module automates DSC configurations.'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
-    @{ ModuleName = 'Microsoft.PowerShell.Utility'; }
+    @{ ModuleName = 'Microsoft.PowerShell.Utility'; ModuleVersion = '3.0.0.0' }
     @{ ModuleName = 'PSDocs'; ModuleVersion = '0.2.0'; }
     @{ ModuleName = 'PSDocs.Dsc'; ModuleVersion = '0.2.0'; }
 )
