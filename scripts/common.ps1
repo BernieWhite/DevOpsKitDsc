@@ -57,7 +57,7 @@ function RunTest {
         $currentPath = $PWD;
 
         try {
-            Set-Location -Path "$Path\$TestGroup.Tests" -ErrorAction Stop;
+            #Set-Location -Path "$Path\$TestGroup.Tests" -ErrorAction Stop;
 
             Write-Verbose -Message "[RunTest]`t-- Running tests: $Path\$TestGroup.Tests";
 
@@ -71,7 +71,7 @@ function RunTest {
             Invoke-Pester @pesterParams;
 
         } finally {
-            Set-Location -Path $currentPath;
+            # Set-Location -Path $currentPath;
         }
 
     }

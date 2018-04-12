@@ -317,9 +317,16 @@ Describe 'Node module' {
             Path = '.\src\Test\SampleConfiguration.ps1'
         }
 
+        $moduleParams = @{
+            WorkspacePath = $contextPath
+            ModuleName = 'DevOpsKitDsc-test-module'
+            ModuleVersion = '0.0.1'
+        }
+
         Copy-Item -Path "$here\SampleConfiguration.ps1" -Destination "$srcPath\" -Force;
 
         New-DOKDscCollection @collectionParams;
+        Add-DOKDscModule @moduleParams;
 
         Mock -CommandName 'ImportNodeData' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
             $result = New-Object -TypeName PSObject -Property @{
@@ -337,8 +344,16 @@ Describe 'Node module' {
             return $result;
         }
 
-        # Build all collection in the default output path
-        Invoke-DOKDscBuild -WorkspacePath $contextPath;
+        Mock -CommandName 'RestoreModule' -ModuleName 'DevOpsKitDsc' -Verifiable -MockWith {
+
+        }
+
+        It 'Build completes without errors' {
+            # Build all collection in the default output path
+            Invoke-DOKDscBuild -WorkspacePath $contextPath -ErrorVariable err;
+            $err.Count | Should -Be 0;
+        }
+        
         $nodeMofPath = Join-Path -Path $contextPath -ChildPath 'build\Test\Test.mof';
 
         It 'Configuration is built' {
@@ -359,7 +374,12 @@ Describe 'Node module' {
         
         # Build all collections with an alternative output path set
         Set-DOKDscWorkspaceOption -WorkspacePath $contextPath -OutputPath '.\build2';
-        Invoke-DOKDscBuild -WorkspacePath $contextPath;
+
+        It 'Increment build completes without errors' {
+            Invoke-DOKDscBuild -WorkspacePath $contextPath -ErrorVariable err;
+            $err.Count | Should -Be 0;
+        }
+
         $nodeMofPath2 = Join-Path -Path $contextPath -ChildPath 'build2\Test\Test.mof';
 
         # Check that the same configuration was not rebuild
@@ -369,12 +389,24 @@ Describe 'Node module' {
 
         # Force build all collections with an alternative output path set
         Set-DOKDscWorkspaceOption -WorkspacePath $contextPath -OutputPath '.\build3';
-        Invoke-DOKDscBuild -WorkspacePath $contextPath -Force;
+
+        It 'Force build completes without errors' {
+            Invoke-DOKDscBuild -WorkspacePath $contextPath -Force -ErrorVariable err;
+            $err.Count | Should -Be 0;
+        }
+
         $nodeMofPath3 = Join-Path -Path $contextPath -ChildPath 'build3\Test\Test.mof';
         
         # Check that configuration is built again because force was used
         It 'Forced configuration is built' {
             Test-Path -Path $nodeMofPath3 -PathType Leaf | Should be $True;
+        }
+
+        $modulePath1 = Join-Path -Path $contextPath -ChildPath 'modules\';
+
+        It 'Modules are restored' {
+            # Test-Path -Path $modulePath1 -PathType Leaf | Should be $True;
+            Assert-MockCalled -CommandName 'RestoreModule' -ModuleName 'DevOpsKitDsc' -Times 1;
         }
     }
 

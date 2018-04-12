@@ -1,6 +1,13 @@
 # Feature details
 
-The following sections decribe DOKD features that enhance use of PowerShell Desired State Configuration (DSC).
+The following sections describe DOKD features that enhance use of PowerShell Desired State Configuration (DSC).
+
+## DevOps
+
+DOKD helps to accelerate a DevOps workflow for DSC by providing pipeline automation for build and release processes.
+
+- Build
+- Release
 
 ## Collections
 
@@ -10,9 +17,13 @@ DOKD uses collections, which is a pairing of a configuration script and one or m
 
 ## Build
 
+### Module restore
+
+Automatically restore module dependencies.
+
 ### Incremental build
 
-When using incremental build, DSC configurations are only built when they have changed. This can add up to a substantial reducion in build time, when a large number of nodes exist in a collection.
+When using incremental build, DSC configurations are only built when they have changed. This can add up to a substantial reduction in build time, when a large number of nodes exist in a collection.
 
 The incremental build feature generates an signature based on:
 
@@ -21,7 +32,7 @@ The incremental build feature generates an signature based on:
 
 By default signature data is stored in `.dok-obj` within a workspace. This path should be excluded from source control.
 
-When using incremental build within a continious integration/continious deployment pipline override the default signature path to a share or web location. The default signature data locations can be changed by using the [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption] cmdlet.
+When using incremental build within a continuous integration/continuous deployment pipeline override the default signature path to a share or web location. The default signature data locations can be changed by using the [Set-DOKDscCollectionOption] cmdlet.
 
 #### Using a Azure Blob Storage
 
@@ -32,7 +43,7 @@ Use the following steps to configure Azure Blob Storage as a location for increm
 1. Create or use an existing storage account
 1. Create an empty blob container
 1. Create a SAS signature with the `Read` and `Write` permissions
-1. Use [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption] with the `-SignaturePath` and `-SignatureSasToken` parameters
+1. Use [Set-DOKDscCollectionOption] with the `-SignaturePath` and `-SignatureSasToken` parameters
 
 ### Documentation
 
@@ -44,9 +55,9 @@ For details on the PSDocs syntax and output examples see [PSDocs][psdocs].
 
 ### Flat configuration data
 
-PowerShell DSC includes a features called _configuration data_. Configuration data allows IT Pros to seperate environmental or node settings from the configuration script, allowing administrator to avoid hard coding configuration settings that may differ between servers.
+PowerShell DSC includes a features called _configuration data_. Configuration data allows IT Pros to separate environmental or node settings from the configuration script, allowing administrator to avoid hard coding configuration settings that may differ between servers.
 
-For example, consider the following configurations that might be maintained seperately. Using _configuration data_, a single configuration script can used to manage each server independently without sacreficing code reuse.
+For example, consider the following configurations that might be maintained separately. Using _configuration data_, a single configuration script can used to manage each server independently without sacrificing code reuse.
 
 | Server name | Environment | Role | Domain name | Web apps |
 | ----------- | ----------- | ---- | ----------- | -------- |
@@ -139,9 +150,9 @@ JSON formatted node data also supports DOKD flat configuration data.
 }
 ```
 
-## Packaging
+## Release
 
-### Packaging resource modules for local pull server
+### Packaging modules for local pull server
 
 When PowerShell modules containing DSC resources are deployed to local pull server configurations, each module must be zipped, named and a checksum generated before the pull server can correctly process them.
 
@@ -149,12 +160,12 @@ DOKD will download and package any dependency modules defined in the workspace.
 
 To set this up in a workspace:
 
-1. Set Target = 0 for the specific collection using the [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption]
+1. Set `Target = FileSystem` for the specific collection using the [Set-DOKDscCollectionOption]
 2. Add one or more modules to the workspace with the [Add-DOKDscModule][dokd-add] command
 
 ```powershell
 # Set a collection named SharePoint to package for local DSC server
-Set-DOKDscCollectionOption -Name 'SharePoint' -Target 0;
+Set-DOKDscCollectionOption -Name 'SharePoint' -Target FileSystem;
 
 # Add v1.8.0.0 of the SharePointDsc module to the workspace
 Add-DOKDscModule -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
@@ -162,21 +173,34 @@ Add-DOKDscModule -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
 
 ### Packaging modules for Azure Automation Service
 
-When PowerShell modules containing DSC resources are deployed to Azure Automation Service, each module must be zipped and named before the pull server can correctly process them.
+When PowerShell modules containing DSC resources are deployed to Azure Automation Service, each module must be zipped and named before the service can correctly process them.
 
 DOKD will download and package any dependency modules defined in the workspace.
 
 To set this up in a workspace:
 
-1. Set Target = 1 for the specific collection using the [Set-DOKDscCollectionOption][Set-DOKDscCollectionOption]
+1. Set `Target = AzureAutomationService` for the specific collection using the [Set-DOKDscCollectionOption]
 2. Add one or more modules to the workspace with the [Add-DOKDscModule][dokd-add] command
 
 ```powershell
 # Set a collection named SharePoint to package for Azure Automation Service
-Set-DOKDscCollectionOption -Name 'SharePoint' -Target 1;
+Set-DOKDscCollectionOption -Name 'SharePoint' -Target AzureAutomationService;
 
 # Add v1.8.0.0 of the SharePointDsc module to the workspace
 Add-DOKDscModule -ModuleName 'SharePointDsc' -ModuleVersion '1.8.0.0';
+```
+
+### Packaging configuration for Azure Dsc Extension
+
+When deploying DSC configurations using Azure Resource Manager (ARM) templates, ARM expects configurations to be presented as a zip file.
+
+To set this up in a workspace:
+
+1. Set `Target = AzureDscExtension` for the specific collection using the [Set-DOKDscCollectionOption]
+
+```powershell
+# Set a collection named SharePoint to package for Azure DSC extension
+Set-DOKDscCollectionOption -Name 'SharePoint' -Target AzureDscExtension;
 ```
 
 [psdocs]: https://github.com/BernieWhite/PSDocs

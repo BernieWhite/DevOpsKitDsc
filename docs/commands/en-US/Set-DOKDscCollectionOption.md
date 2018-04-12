@@ -147,7 +147,7 @@ Specified the target for publish operations. This option will affect how configu
 Type: ConfigurationOptionTarget
 Parameter Sets: (All)
 Aliases:
-Accepted values: FileSystem, AzureAutomationService
+Accepted values: FileSystem, AzureAutomationService, AzureDscExtension
 
 Required: False
 Position: 2
