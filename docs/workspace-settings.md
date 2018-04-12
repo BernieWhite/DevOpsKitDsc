@@ -107,6 +107,7 @@ Provides a list of modules associated with the workspace.
 | `name` | Mandatory | string | The name of the PowerShell module. |
 | `version` | Mandatory | string | A specific version of the PowerShell module. |
 | `repository` | Optional | string | The repository to download the module from. |
+| `type` | Optional | integer | The type of module. 0 = Repository, 1 = Workspace. |
 
 ## JSON validation
 
