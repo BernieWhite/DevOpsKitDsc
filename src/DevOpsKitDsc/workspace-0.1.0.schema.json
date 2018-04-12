@@ -21,6 +21,11 @@
                 "repository": {
                     "type": "string",
                     "description": "The repository to download the module from."
+                },
+                "type": {
+                    "type": "integer",
+                    "description": "The type of module. 0 = Repository, 1 = Workspace",
+                    "enum": [ 0, 1 ]
                 }
             },
             "required": [ "name", "version" ]
@@ -46,8 +51,8 @@
                     "properties": {
                         "target": {
                             "type": "integer",
-                            "description": "The target for the configuration. 0 = File system, 1 = Azure Automation Service",
-                            "enum": [ 0, 1 ]
+                            "description": "The target for the configuration. 0 = File system, 1 = Azure Automation Service, 2 = Azure DSC Extension",
+                            "enum": [ 0, 1, 2 ]
                         },
                         "replaceNodeData": {
                             "type": "boolean",
