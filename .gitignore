@@ -2,6 +2,7 @@
 /**/.vs/
 /**/bin/
 /**/obj/
+/out/
 /build/
 /nodes/
 /config/
