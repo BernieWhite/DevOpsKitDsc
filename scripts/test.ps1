@@ -46,8 +46,8 @@ $pesterModule = Get-Module -Name Pester -ListAvailable | Where-Object -FilterScr
 
 if ($Null -eq $pesterModule) {
     Install-PackageProvider -Name NuGet -Force -Scope CurrentUser;   
-     
-    Install-Module -Name Pester -Force -Scope CurrentUser;
+
+    Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck;
 }
 
 # Load Pester module
