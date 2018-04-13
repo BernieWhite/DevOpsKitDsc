@@ -6,18 +6,20 @@ _DevOps Kit for Dsc_ uses a `settings.json` file to store settings for the works
 
 The structure of the workspace settings.json is as follows:
 
-| Property | Type | Description |
-| -------- | ---- | ----------- |
-| `version` | string | The version of the workspace schema must be defined and set to `0.1.0`. |
-| `options` | object | Options that apply to the workspace. See workspace options. |
-| `collections` | array of collections | One or more collections defined for the workspace. See collections for further detail. |
-| `modules` | array of modules | One or more modules defined for the workspace. See modules for further detail. |
+| Property | Requirement | Type | Description |
+| -------- | ----------- | ---- | ----------- |
+| `version` | Mandatory | string | The version of the workspace schema must be defined and set to `0.1.0`. |
+| `description` | Optional | string | A description of the workspace. |
+| `options` | Optional | object | Options that apply to the workspace. See [workspace options](#workspace-options). |
+| `collections` | Optional | array of collections | One or more collections defined for the workspace. See [collections](#collections) for further detail. |
+| `modules` | Optional | array of modules | One or more modules defined for the workspace. See [modules](#modules) for further detail. |
 
 For example:
 
 ```json
 {
     "version": "0.1.0",
+    "description": "SharePoint farm solution.",
     "options": { },
     "collections": [ ],
     "modules": [ ]
@@ -38,11 +40,9 @@ For example:
 
 ```json
 {
-    "options": {
-        "modulePath": ".\\modules",
-        "nodePath": ".\\nodes",
-        "outputPath": ".\\out"
-    }
+    "modulePath": ".\\modules",
+    "nodePath": ".\\nodes",
+    "outputPath": ".\\out"
 }
 ```
 
@@ -64,17 +64,13 @@ For example:
 
 ```json
 {
-    "collections": [
-        {
-            "name": "SharePoint",
-            "path": ".\\src\\Production\\SharePoint.ps1",
-            "configurationName": "SharePoint",
-            "options": { },
-            "data": { },
-            "nodes": [ ],
-            "docs": { }
-        }
-    ]
+    "name": "SharePoint",
+    "path": ".\\src\\Production\\SharePoint.ps1",
+    "configurationName": "SharePoint",
+    "options": { },
+    "data": { },
+    "nodes": [ ],
+    "docs": { }
 }
 ```
 
@@ -82,13 +78,36 @@ For example:
 
 Configures options thaty affect a collection. Collection options can be use using the `Set-DOKDscCollectionOption` cmdlet.
 
-_Check back soon for more information_.
+| Property | Requirement | Type | Description |
+| -------- | ----------- | ---- | ----------- |
+| `target` | Optional | integer | The target for the configuration. 0 = File system, 1 = Azure Automation Service. |
+| `replaceNodeData` | Optional | boolean | Determined if key/values defined in the data section replace node data, if include in both. The default is not to override data specified in the .psd1. |
+| `buildMode` | Optional | integer | A mode for build operations. 1 = Incremental, 2 = Full. |
+| `signaturePath` | Optional | string | The path to the location containing build signatures. |
+| `signatureSasToken` | Optional | string | An optional shared access secret (SAS) token for authentication to the signature path. |
+
+For example:
+
+```json
+{
+    "target": 0,
+    "replaceNodeData": false,
+    "buildMode": 2,
+    "signaturePath": "",
+    "signatureSasToken": ""
+}
+```
 
 ### Modules
 
 Provides a list of modules associated with the workspace.
 
-_Check back soon for more information_.
+| Property | Requirement | Type | Description |
+| -------- | ----------- | ---- | ----------- |
+| `name` | Mandatory | string | The name of the PowerShell module. |
+| `version` | Mandatory | string | A specific version of the PowerShell module. |
+| `repository` | Optional | string | The repository to download the module from. |
+| `type` | Optional | integer | The type of module. 0 = Repository, 1 = Workspace. |
 
 ## JSON validation
 

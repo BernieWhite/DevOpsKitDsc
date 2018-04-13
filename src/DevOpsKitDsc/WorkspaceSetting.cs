@@ -12,15 +12,22 @@ namespace DevOpsKitDsc.Workspace
 {
     public enum ConfigurationOptionTarget : byte
     {
-        FileSystem,
+        // Build for deployment to a pull server
+        FileSystem = 0,
 
-        AzureAutomationService
+        // Build for use within Azure Automation Service
+        AzureAutomationService = 1,
+
+        // Build for use directly within ARM templates
+        AzureDscExtension = 2
     }
 
     public enum CollectionBuildMode : byte
     {
+        // Build changed configurations
         Incremental = 1,
 
+        // Always build configuration
         Full = 2
     }
 
@@ -94,13 +101,13 @@ namespace DevOpsKitDsc.Workspace
     [JsonObject()]
     public sealed class Collection
     {
-        [JsonProperty(PropertyName = "name", Required = Newtonsoft.Json.Required.Always)]
+        [JsonProperty(PropertyName = "name", Required = Required.Always)]
         public string Name;
 
         [JsonProperty(PropertyName = "options", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public CollectionOption Options;
 
-        [JsonProperty(PropertyName = "path", Required = Newtonsoft.Json.Required.Always)]
+        [JsonProperty(PropertyName = "path", Required = Required.Always)]
         public string Path;
 
         [JsonProperty(PropertyName = "configurationName", DefaultValueHandling = DefaultValueHandling.Ignore)]
@@ -149,9 +156,15 @@ namespace DevOpsKitDsc.Workspace
     [JsonObject()]
     public sealed class Module
     {
+        /// <summary>
+        /// The name of a PowerShell module.
+        /// </summary>
         [JsonProperty(PropertyName = "name", Required = Newtonsoft.Json.Required.Always)]
         public string ModuleName;
 
+        /// <summary>
+        /// A specific version of the module.
+        /// </summary>
         [JsonProperty(PropertyName = "version", Required = Newtonsoft.Json.Required.Always)]
         public string ModuleVersion;
 

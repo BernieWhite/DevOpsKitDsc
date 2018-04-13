@@ -110,7 +110,7 @@ Accept wildcard characters: False
 
 If the module is from this workspace or a repository.
 
-When Workspace type is used no attept will be made to download the module from an external repository.
+When Workspace type is used no attempt will be made to download the module from an external repository.
 
 ```yaml
 Type: String

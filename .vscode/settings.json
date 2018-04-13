@@ -11,7 +11,8 @@
     "files.exclude": {
         ".vs": true,
         "artifacts": true,
-        "reports": true
+        "reports": true,
+        "build": true
     },
     "search.exclude": {
         "build": true

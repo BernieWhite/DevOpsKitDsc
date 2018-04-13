@@ -84,7 +84,8 @@ Accept wildcard characters: False
 ```
 
 ### -Nodes
-{{Fill Nodes Description}}
+
+Set one or more node paths to check for node data when building a collection.
 
 ```yaml
 Type: String[]
@@ -99,7 +100,8 @@ Accept wildcard characters: False
 ```
 
 ### -Options
-{{Fill Options Description}}
+
+Optionally supply additional options to set on the collection. Options can be set or modified later using the `Set-DOKDscCollectionOption` cmdlet.
 
 ```yaml
 Type: CollectionOption
@@ -131,8 +133,7 @@ Accept wildcard characters: False
 
 ### -WhatIf
 
-Shows what would happen if the cmdlet runs.
-The cmdlet is not run.
+Shows what would happen if the cmdlet runs. The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter

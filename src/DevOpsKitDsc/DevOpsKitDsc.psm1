@@ -250,7 +250,10 @@ function Publish-DOKDscCollection {
         [String[]]$Name,
 
         [Parameter(Mandatory = $False)]
-        [String]$WorkspacePath = $PWD
+        [String]$WorkspacePath = $PWD,
+
+        [Parameter(Mandatory = $False)]
+        [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]$Target
     )
 
     begin {
@@ -275,14 +278,24 @@ function Publish-DOKDscCollection {
             Write-Verbose -Message "[DOKDsc][$dokOperation] -- Processing collection: $Name";
 
             $outputPath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $setting.Options.OutputPath -Verbose:$VerbosePreference;
+
+            # Override the collection target if specified
+            if ($PSBoundParameters.ContainsKey('Target')) {
+                if ($Null -eq $collection.Options) {
+                    $collection.Options = New-Object -TypeName DevOpsKitDsc.Workspace.CollectionOption;
+                }
+
+                $collection.Options.Target = $Target;
+            }
             
             $publishParams = @{
                 OutputPath = $outputPath;
                 Path = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Path -Verbose:$VerbosePreference;
                 Name = $collection.Name;
+                Collection = $collection;
             };
 
-            PublishConfiguration @publishParams;
+            PublishConfiguration @publishParams -Verbose:$VerbosePreference;
         }
     }
 
@@ -340,9 +353,20 @@ function Invoke-DOKDscBuild {
         #     return;
         # }
 
+        $availableModules = $Null;
+
+        # Build module cache
+        if ($Null -ne $setting.Modules -and $setting.Modules.Length -gt 0) {
+            $availableModules = BuildModuleCache;
+        }
+
+        # Get the module path
+        $modulePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $setting.Options.ModulePath;
+        $modulePath = CreatePath -Path $modulePath -PassThru -Verbose:$VerbosePreference;
+
         $configFilterParams = @{ Workspace = $setting; };
 
-        if ($PSBoundParameters.ContainsKey($configFilterParams)) {
+        if ($PSBoundParameters.ContainsKey('Name')) {
             $configFilterParams['Name'] = $Name;
         }
 
@@ -350,6 +374,8 @@ function Invoke-DOKDscBuild {
         
         # Process each environment
         foreach ($collection in $collections) {
+
+            Write-Verbose -Message "[DOKDsc][$dokOperation] -- Processing collection: $($collection.Name)";
             
             # Get the output path
             $outputPath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $setting.Options.OutputPath -ChildPath $collection.Name;
@@ -398,6 +424,8 @@ function Invoke-DOKDscBuild {
                                 $signaturePath = GetWorkspacePath -WorkspacePath $WorkspacePath -Path $collection.Options.SignaturePath;
                             }
                         }
+
+                        ImportModule -Module $setting.Modules -OutputPath $modulePath -Verbose:$VerbosePreference;
 
                         if ($Force -or ($Null -ne $collection.Options -and $collection.Options.BuildMode -eq [DevOpsKitDsc.Workspace.CollectionBuildMode]::Full) -or (ShouldBuildConfiguration -Signature $signature -SasToken $collection.Options.SignatureSasToken -Path $signaturePath -InstanceName $node.InstanceName -CollectionName $collection.Name)) {
 
@@ -1688,44 +1716,44 @@ function WriteBuildSignature {
 }
 
 function WriteBuildSignatureWeb {
-    
-        [CmdletBinding()]
-        [OutputType([void])]
-        param (
-            [Parameter(Mandatory = $True)]
-            [System.Uri]$Uri,
 
-            [Parameter(Mandatory = $True)]
-            [String]$Value
-        )
-    
-        process {
+    [CmdletBinding()]
+    [OutputType([void])]
+    param (
+        [Parameter(Mandatory = $True)]
+        [System.Uri]$Uri,
 
-            $requestParams = @{
-                Uri = $Uri
-            }
-    
-            if ($Uri.Host -like '*.blob.core.windows.net') {
-                $requestParams['Headers'] = @{
-                    'x-ms-version' = '2017-04-17'
-                    'x-ms-blob-type' = 'BlockBlob'
-                    'x-ms-date' = [DateTime]::UtcNow.ToString('yyyy-MM-dd')
-                }
-            }
+        [Parameter(Mandatory = $True)]
+        [String]$Value
+    )
 
-            try {
-                $response = Invoke-RestMethod @requestParams -UseBasicParsing -Method Put -Body $Value;
+    process {
+
+        $requestParams = @{
+            Uri = $Uri
+        }
+
+        if ($Uri.Host -like '*.blob.core.windows.net') {
+            $requestParams['Headers'] = @{
+                'x-ms-version' = '2017-04-17'
+                'x-ms-blob-type' = 'BlockBlob'
+                'x-ms-date' = [DateTime]::UtcNow.ToString('yyyy-MM-dd')
             }
-            catch {
-    
-                if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
-                    return $Null;
-                } else {
-                    Write-Error -Exception $_.Exception -ErrorAction Stop;
-                }
+        }
+
+        try {
+            $response = Invoke-RestMethod @requestParams -UseBasicParsing -Method Put -Body $Value;
+        }
+        catch {
+
+            if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
+                return $Null;
+            } else {
+                Write-Error -Exception $_.Exception -ErrorAction Stop;
             }
         }
     }
+}
 
 function GetSignatureEndpoint {
 
@@ -1793,6 +1821,8 @@ function ImportNodeData {
             if (!(Test-Path -Path $pathFilter))
             {
                 Write-Warning -Message "Node path $path does not exist";
+
+                continue;
             }
 
             $result = Get-ChildItem -Path $pathFilter -File | Where-Object -FilterScript {
@@ -2103,7 +2133,10 @@ function PublishConfiguration {
         [String]$Path,
 
         [Parameter(Mandatory = $True)]
-        [String]$OutputPath
+        [String]$OutputPath,
+
+        [Parameter(Mandatory = $True)]
+        [DevOpsKitDsc.Workspace.Collection]$Collection
     )
 
     process {
@@ -2123,6 +2156,17 @@ function PublishConfiguration {
 
         Copy-Item -LiteralPath $Path -Destination $collectionOutput -Force;
 
+        if ($Null -ne $Collection.Options -and $Collection.Options.Target -eq [DevOpsKitDsc.Workspace.ConfigurationOptionTarget]::AzureDscExtension) {
+            $publishName = $Name;
+
+            # Get the full path to the package file
+            $publishFilePath = Join-Path -Path $collectionOutput -ChildPath $publishName;
+
+            Compress-Archive -Path "$collectionOutput\*" -DestinationPath $publishFilePath -Verbose:$VerbosePreference -Force;
+
+            # Clean up other files
+            Remove-Item -Path $collectionOutput -Exclude *.zip -Force -Recurse;
+        }
     }
 }
 
@@ -2160,7 +2204,7 @@ function PublishModule {
         }
 
         # Compress the module
-        Compress-Archive -Path "$($Module.Path)\*" -DestinationPath $publishFilePath -Verbose -Force;
+        Compress-Archive -Path "$($Module.Path)\*" -DestinationPath $publishFilePath -Verbose:$VerbosePreference -Force;
     }
 }
 
@@ -2460,6 +2504,94 @@ function AddModuleToWorkspace {
     }
 }
 
+function BuildModuleCache {
+
+    [CmdletBinding()]
+    param (
+
+    )
+
+    process {
+        Write-Verbose -Message "[DOKDsc][$dokOperation] -- Building module cache";
+
+        $result = New-Object -TypeName 'System.Collections.Generic.Dictionary[[string], [PSObject]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase);
+
+        # Get modules in memory first
+        foreach ($m in (Get-Module)) {
+
+            $moduleId = "$($m.Name).$($m.Version)";
+
+            $result[$moduleId] = New-Object -TypeName PSObject -Property @{
+                Name = $m.Name;
+                Version = $m.Version;
+                Path = $m.Path;
+                IsLoaded = $True;
+            }
+        }
+
+        # Get all available modules
+        foreach ($m in (Get-Module -ListAvailable)) {
+
+            $moduleId = "$($m.Name).$($m.Version)";
+
+            # Ignore modules that are already loaded in memory
+            if (!$result.ContainsKey($moduleId)) {
+                $result[$moduleId] = New-Object -TypeName PSObject -Property @{
+                    Name = $m.Name;
+                    Version = $m.Version;
+                    Path = $m.Path;
+                    IsLoaded = $False;
+                }
+            }
+        }
+
+        return $result;
+    }
+}
+
+function ImportModule {
+
+    [CmdletBinding()]
+    [OutputType([void])]
+    param (
+        [Parameter(Mandatory = $False)]
+        [DevOpsKitDsc.Workspace.Module[]]$Module,
+
+        [Parameter(Mandatory = $True)]
+        [String]$OutputPath
+    )
+
+    process {
+
+        # Skip if there are not any module dependencies added to the workspace
+        if ($Null -eq $Module -or $Module.Length -eq 0) {
+            return;
+        }
+
+        foreach ($m in $Module) {
+            
+            # Determine if the module is installed on the system
+
+            $moduleId = "$($m.ModuleName).$($m.ModuleVersion)";
+
+            if ($availableModules.ContainsKey($moduleId)) {
+
+                if (!$availableModules[$moduleId].IsLoaded) {
+                    Write-Verbose -Message "[DOKDsc][$dokOperation] -- Importing $($m.ModuleName) v$($m.ModuleVersion)";
+
+                    Import-Module -Name $m.ModuleName -RequiredVersion $m.ModuleVersion;# -Force;
+                }
+                else {
+                    Write-Verbose -Message "[DOKDsc][$dokOperation] -- Already loaded. Skipping $($m.ModuleName) v$($m.ModuleVersion)";
+                }
+            }
+            else {
+                RestoreModule -Module $m -OutputPath $OutputPath -Verbose:$VerbosePreference;
+            }
+        }
+    }
+}
+
 function RestoreModule {
 
     [CmdletBinding()]
@@ -2513,7 +2645,7 @@ function SaveModule {
             $moduleFilter.Add('Repository', $Module.Repository);
         }
 
-        Save-Module @moduleFilter;
+        Save-Module @moduleFilter -ErrorAction Stop;
     }
 }
 
@@ -2668,10 +2800,10 @@ function GetCollection {
 # Export module
 #
 
-New-Alias -Name 'dokd-init' -Value 'Initialize-DOKDsc';
-New-Alias -Name 'dokd-restore' -Value 'Restore-DOKDscModule';
-New-Alias -Name 'dokd-new' -Value 'New-DOKDscCollection';
-New-Alias -Name 'dokd-build' -Value 'Invoke-DOKDscBuild';
+New-Alias -Name 'dokd-init' -Value 'Initialize-DOKDsc' -ErrorAction SilentlyContinue;
+New-Alias -Name 'dokd-restore' -Value 'Restore-DOKDscModule' -ErrorAction SilentlyContinue;
+New-Alias -Name 'dokd-new' -Value 'New-DOKDscCollection' -ErrorAction SilentlyContinue;
+New-Alias -Name 'dokd-build' -Value 'Invoke-DOKDscBuild' -ErrorAction SilentlyContinue;
 
 Export-ModuleMember -Alias @(
     'dokd-init'

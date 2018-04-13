@@ -2,6 +2,7 @@
 /**/.vs/
 /**/bin/
 /**/obj/
+/out/
 /build/
 /nodes/
 /config/
@@ -9,3 +10,4 @@
 /reports/
 /**/*.user
 /docs/help/
+/**/*-help.xml

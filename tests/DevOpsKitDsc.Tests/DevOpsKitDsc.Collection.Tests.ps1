@@ -6,7 +6,7 @@ $temp = "$here\..\..\build";
 
 Import-Module $src -Force;
 
-$outputPath = "$temp\DevOpsKitDsc.Tests\Collection";
+$outputPath = "$temp\DevOpsKitDsc.Tests\Collection\";
 
 if ((Test-Path -Path $outputPath)) {
     Remove-Item -Path $outputPath -Recurse -Force;
@@ -54,7 +54,7 @@ Describe 'Workspace collection' {
         }
     }
 
-    Context 'Publish a module for local pull server' {
+    Context 'Publish a collection for local pull server' {
 
         # Init the workspace
         $contextPath = Join-Path -Path $outputPath -ChildPath 'PublishCollectionPullServer';
@@ -70,6 +70,25 @@ Describe 'Workspace collection' {
 
         It 'Configuration is published to collection' {
             Test-Path -Path "$contextPath\build\Test\SampleConfiguration.ps1" | Should be $True;
+        }
+    }
+
+    Context 'Publish a collection for Azure Dsc Extension' {
+
+        # Init the workspace
+        $contextPath = Join-Path -Path $outputPath -ChildPath 'PublishCollectionAzureDscExtension';
+        Initialize-DOKDsc -Path $contextPath -Force;
+
+        New-Item -Path "$contextPath\src\Test" -ItemType Directory -Force | Out-Null;
+
+        Copy-Item -Path "$here\SampleConfiguration.ps1" -Destination "$contextPath\src\Test\SampleConfiguration.ps1";
+
+        New-DOKDscCollection -WorkspacePath $contextPath -Name 'Test' -Path "$contextPath\src\Test\SampleConfiguration.ps1";
+
+        Publish-DOKDscCollection -WorkspacePath $contextPath -Name 'Test' -Target AzureDscExtension;
+
+        It 'Configuration is published to collection' {
+            Test-Path -Path "$contextPath\build\Test\Test.zip" | Should be $True;
         }
     }
 

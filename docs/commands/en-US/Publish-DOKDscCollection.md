@@ -14,7 +14,8 @@ Publish the configuration of a collection.
 ## SYNTAX
 
 ```text
-Publish-DOKDscCollection [[-Name] <String[]>] [[-WorkspacePath] <String>] [<CommonParameters>]
+Publish-DOKDscCollection [[-Name] <String[]>] [[-WorkspacePath] <String>]
+ [-Target <ConfigurationOptionTarget>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -60,6 +61,22 @@ Aliases:
 
 Required: False
 Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Target
+
+Override the target to publish a collection to.
+
+```yaml
+Type: ConfigurationOptionTarget
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
