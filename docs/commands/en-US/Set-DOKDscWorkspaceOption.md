@@ -70,7 +70,7 @@ Accept wildcard characters: False
 
 Set the base path to output publish and build actions. The path can be a specific local/remote location or relative to the workspace root. If this option is not set, the default .\build path will be used.
 
-Within the output path, seperate folders will be created for each collection.
+Within the output path, separate folders will be created for each collection.
 
 ```yaml
 Type: String
@@ -86,8 +86,7 @@ Accept wildcard characters: False
 
 ### -WhatIf
 
-Shows what would happen if the cmdlet runs.
-The cmdlet is not run.
+Shows what would happen if the cmdlet runs. The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter

@@ -9,7 +9,7 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-Package workspace dependency modules for distribution to a DSC pull server.
+Publish a workspace dependency modules for distribution.
 
 ## SYNTAX
 
@@ -20,23 +20,23 @@ Publish-DOKDscModule [[-WorkspacePath] <String>] [[-Name] <String>] [[-ModuleNam
 
 ## DESCRIPTION
 
-Package workspace dependency modules for distribution to a DSC pull server.
+Publish dependency modules for distribution.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-PS C:\> {{ Add example code here }}
+PS C:\> Publish-DOKDscModule -Name 'Default';
 ```
 
-{{ Add example description here }}
+Publish modules associated with the `Default` collection.
 
 ## PARAMETERS
 
 ### -ModuleName
 
-{{Fill ModuleName Description}}
+Optionally publish modules with a specific name.
 
 ```yaml
 Type: String
@@ -52,7 +52,7 @@ Accept wildcard characters: False
 
 ### -ModuleVersion
 
-{{Fill ModuleVersion Description}}
+Optionally publish modules with a specific version.
 
 ```yaml
 Type: String
@@ -68,7 +68,7 @@ Accept wildcard characters: False
 
 ### -Name
 
-{{Fill Name Description}}
+The name of a collection to publish.
 
 ```yaml
 Type: String

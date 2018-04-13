@@ -27,16 +27,16 @@ Get a list of module dependencies in the workspace.
 ### Example 1
 
 ```powershell
-PS C:\> {{ Add example code here }}
+PS C:\> Get-DOKDscModule;
 ```
 
-{{ Add example description here }}
+Get a list of dependency modules added to the workspace.
 
 ## PARAMETERS
 
 ### -ModuleName
 
-The name of the module.
+Optionally filter to modules with a specific name.
 
 ```yaml
 Type: String
@@ -52,7 +52,7 @@ Accept wildcard characters: False
 
 ### -ModuleVersion
 
-{{Fill ModuleVersion Description}}
+Optionally filter to modules with a specific version number.
 
 ```yaml
 Type: String
