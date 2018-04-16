@@ -1,11 +1,6 @@
-
-using System;
-using System.ComponentModel;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Collections;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -18,6 +13,9 @@ namespace DevOpsKitDsc.Build
         public string Path;
     }
 
+    /// <summary>
+    /// A signature that tracks the source files that were previous used to build a DSC configuration so that DevOpsKit for DSC can determine when these files are changed.
+    /// </summary>
     [JsonObject()]
     public sealed class BuildSignature
     {
