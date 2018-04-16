@@ -134,6 +134,8 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = 'https://github.com/BernieWhite/DevOpsKitDsc/releases'
 
+        # These dependencies are shipped with PowerShell.
+        ExternalModuleDependencies = @('Microsoft.PowerShell.Utility')
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable
