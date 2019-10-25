@@ -9,7 +9,7 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-Create a public/private key pair for configuration encryption.
+Create a public/ private key pair for configuration encryption.
 
 ## SYNTAX
 
@@ -26,16 +26,16 @@ Create a public/private key pair for configuration encryption.
 ### Example 1
 
 ```powershell
-PS C:\> {{ Add example code here }}
+PS C:\> Register-DOKDscNode -InstanceName Server1;
 ```
 
-{{ Add example description here }}
+Create and extract a public/ private key pair for the node `Server1`.
 
 ## PARAMETERS
 
 ### -InstanceName
 
-{{Fill InstanceName Description}}
+The name of the node.
 
 ```yaml
 Type: String[]
